@@ -1,0 +1,19 @@
+{
+  "name": "@sarhad/i18n",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Arabic and English messages shared by the website, back office and mobile app",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./messages/*": "./src/messages/*"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.0",
+    "vitest": "^5.1.1"
+  }
+}
