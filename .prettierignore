@@ -1,0 +1,7 @@
+pnpm-lock.yaml
+**/.next
+**/.expo
+supabase/migrations
+**/database.types.ts
+apps/*/AGENTS.md
+supabase/templates
