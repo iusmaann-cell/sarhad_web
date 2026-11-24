@@ -28,7 +28,7 @@ const ITEMS: Item[] = [
   { href: "/orders", key: "orders", icon: ClipboardList, soon: true },
   { href: "/menu", key: "menu", icon: UtensilsCrossed },
   { href: "/branches", key: "branches", icon: Store },
-  { href: "/zones", key: "deliveryZones", icon: MapPinned, soon: true },
+  { href: "/zones", key: "deliveryZones", icon: MapPinned },
   { href: "/staff", key: "staff", icon: Users },
   { href: "/settings", key: "settings", icon: Settings, soon: true, adminOnly: true },
 ];

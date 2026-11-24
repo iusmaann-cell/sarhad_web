@@ -85,6 +85,47 @@ export type Database = {
         };
         Relationships: [];
       };
+      delivery_zones: {
+        Row: {
+          area: unknown;
+          area_geojson: Json;
+          branch_id: string;
+          color: string;
+          created_at: string;
+          eta_minutes: number;
+          fee_fils: number;
+          id: string;
+          is_active: boolean;
+          min_order_fils: number;
+          name_ar: string;
+          name_en: string;
+          sort_order: number;
+          updated_at: string;
+        };
+        Insert: {
+          area: unknown;
+          branch_id: string;
+          color?: string;
+          eta_minutes?: number;
+          fee_fils?: number;
+          id?: string;
+          is_active?: boolean;
+          min_order_fils?: number;
+          name_ar: string;
+          name_en: string;
+          sort_order?: number;
+        };
+        Update: Partial<Database["public"]["Tables"]["delivery_zones"]["Insert"]>;
+        Relationships: [
+          {
+            foreignKeyName: "delivery_zones_branch_id_fkey";
+            columns: ["branch_id"];
+            isOneToOne: false;
+            referencedRelation: "branches";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       menu_categories: {
         Row: {
           created_at: string;
@@ -289,6 +330,22 @@ export type Database = {
         Returns: string;
       };
       get_branch_menu: { Args: { p_branch_id: string }; Returns: Json };
+      find_delivery_zone: {
+        Args: { p_lat: number; p_lng: number };
+        Returns: {
+          zone_id: string;
+          branch_id: string;
+          branch_slug: string;
+          branch_name_en: string;
+          branch_name_ar: string;
+          zone_name_en: string;
+          zone_name_ar: string;
+          fee_fils: number;
+          min_order_fils: number;
+          eta_minutes: number;
+        }[];
+      };
+      save_delivery_zone: { Args: { p_zone: Json }; Returns: string };
       save_menu_item: { Args: { p_item: Json }; Returns: string };
       can_access_branch: { Args: { p_branch_id: string }; Returns: boolean };
       can_manage_branch: { Args: { p_branch_id: string }; Returns: boolean };

@@ -35,6 +35,15 @@ Hosting is decided at the end of the project, so nothing here is tied to a host.
 - **Mobile app**: Menu and Branches screens.
 - **Tests**: 24 more database tests (46 in total) and unit tests for prices, add-on rules, opening hours and the forms.
 
+## Phase 3 (Delivery zones) delivers
+
+- **Delivery areas per branch**: branch managers (their branch) and admins (all branches) draw areas on a map in the back office. Each area has its own delivery fee, minimum order, delivery time and colour, and can be paused. An area can be made of several shapes, and shapes that cross themselves are repaired automatically.
+- **Lookup**: `find_delivery_zone(lat, lng)` returns the areas that cover a point, cheapest first, only for active branches that offer delivery. Checkout (Phase 4) uses it to pick the branch and the fee.
+- **Website**: `/delivery` ("Do we deliver to you?"): tap the map or use your location to see the fee, minimum order and time. The pin is remembered for checkout.
+- **Mobile app**: Delivery screen that checks the phone's location.
+- **Maps** use MapLibre with the free OpenFreeMap style (no API key, no cost). Set `NEXT_PUBLIC_MAP_STYLE_URL` to use another style. If the map style cannot load, a plain background is shown and drawing still works.
+- **Tests**: 19 more database tests (65 in total) and unit tests for area shapes and the zone form.
+
 ## Run it locally
 
 Requirements: Node 22, pnpm 10, Docker (for the local Supabase).
@@ -85,7 +94,7 @@ pnpm build
 
 1. Foundations (done)
 2. Menu and branches (done)
-3. Delivery zones (geofences per branch on a map)
+3. Delivery zones (done)
 4. Website ordering
 5. Mobile apps
 6. Order operations

@@ -32,7 +32,10 @@
         "expo-localization",
         {
           "supportsRTL": true,
-          "supportedLocales": { "ios": ["ar", "en"], "android": ["ar", "en"] }
+          "supportedLocales": {
+            "ios": ["ar", "en"],
+            "android": ["ar", "en"]
+          }
         }
       ],
       [
@@ -41,6 +44,12 @@
           "backgroundColor": "#8A1C14",
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 76
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Sarhad uses your location to check if we deliver to you. يستخدم سرحد موقعك للتحقق من إمكانية التوصيل إليك."
         }
       ]
     ],
