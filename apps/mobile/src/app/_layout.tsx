@@ -34,6 +34,8 @@ function Navigator() {
         <Stack.Screen name="(auth)/sign-up" options={{ title: t("nav.signUp") }} />
         <Stack.Screen name="(auth)/forgot-password" options={{ title: t("auth.forgotTitle") }} />
         <Stack.Screen name="account" options={{ title: t("account.title") }} />
+        <Stack.Screen name="menu" options={{ title: t("menu.title") }} />
+        <Stack.Screen name="branches" options={{ title: t("branchesPage.title") }} />
       </Stack>
     </View>
   );

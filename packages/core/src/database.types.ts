@@ -29,7 +29,9 @@ export type Database = {
           created_at: string;
           id: string;
           is_active: boolean;
+          latitude: number | null;
           location: unknown | null;
+          longitude: number | null;
           name_ar: string;
           name_en: string;
           opening_hours: Json;
@@ -61,6 +63,155 @@ export type Database = {
         };
         Update: Partial<Database["public"]["Tables"]["branches"]["Insert"]>;
         Relationships: [];
+      };
+      branch_menu_items: {
+        Row: {
+          branch_id: string;
+          is_available: boolean;
+          item_id: string;
+          price_override_fils: number | null;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          branch_id: string;
+          is_available?: boolean;
+          item_id: string;
+          price_override_fils?: number | null;
+        };
+        Update: {
+          is_available?: boolean;
+          price_override_fils?: number | null;
+        };
+        Relationships: [];
+      };
+      menu_categories: {
+        Row: {
+          created_at: string;
+          description_ar: string | null;
+          description_en: string | null;
+          id: string;
+          is_active: boolean;
+          name_ar: string;
+          name_en: string;
+          sort_order: number;
+          updated_at: string;
+        };
+        Insert: {
+          description_ar?: string | null;
+          description_en?: string | null;
+          id?: string;
+          is_active?: boolean;
+          name_ar: string;
+          name_en: string;
+          sort_order?: number;
+        };
+        Update: Partial<Database["public"]["Tables"]["menu_categories"]["Insert"]>;
+        Relationships: [];
+      };
+      menu_items: {
+        Row: {
+          calories: number | null;
+          category_id: string;
+          created_at: string;
+          description_ar: string | null;
+          description_en: string | null;
+          id: string;
+          image_path: string | null;
+          is_active: boolean;
+          is_featured: boolean;
+          name_ar: string;
+          name_en: string;
+          price_fils: number;
+          sort_order: number;
+          updated_at: string;
+        };
+        Insert: {
+          calories?: number | null;
+          category_id: string;
+          description_ar?: string | null;
+          description_en?: string | null;
+          id?: string;
+          image_path?: string | null;
+          is_active?: boolean;
+          is_featured?: boolean;
+          name_ar: string;
+          name_en: string;
+          price_fils: number;
+          sort_order?: number;
+        };
+        Update: Partial<Database["public"]["Tables"]["menu_items"]["Insert"]>;
+        Relationships: [
+          {
+            foreignKeyName: "menu_items_category_id_fkey";
+            columns: ["category_id"];
+            isOneToOne: false;
+            referencedRelation: "menu_categories";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      modifier_groups: {
+        Row: {
+          created_at: string;
+          id: string;
+          item_id: string;
+          max_select: number;
+          min_select: number;
+          name_ar: string;
+          name_en: string;
+          sort_order: number;
+        };
+        Insert: {
+          id?: string;
+          item_id: string;
+          max_select?: number;
+          min_select?: number;
+          name_ar: string;
+          name_en: string;
+          sort_order?: number;
+        };
+        Update: Partial<Database["public"]["Tables"]["modifier_groups"]["Insert"]>;
+        Relationships: [
+          {
+            foreignKeyName: "modifier_groups_item_id_fkey";
+            columns: ["item_id"];
+            isOneToOne: false;
+            referencedRelation: "menu_items";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      modifier_options: {
+        Row: {
+          created_at: string;
+          group_id: string;
+          id: string;
+          is_active: boolean;
+          name_ar: string;
+          name_en: string;
+          price_delta_fils: number;
+          sort_order: number;
+        };
+        Insert: {
+          group_id: string;
+          id?: string;
+          is_active?: boolean;
+          name_ar: string;
+          name_en: string;
+          price_delta_fils?: number;
+          sort_order?: number;
+        };
+        Update: Partial<Database["public"]["Tables"]["modifier_options"]["Insert"]>;
+        Relationships: [
+          {
+            foreignKeyName: "modifier_options_group_id_fkey";
+            columns: ["group_id"];
+            isOneToOne: false;
+            referencedRelation: "modifier_groups";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       profiles: {
         Row: {
@@ -137,6 +288,8 @@ export type Database = {
         };
         Returns: string;
       };
+      get_branch_menu: { Args: { p_branch_id: string }; Returns: Json };
+      save_menu_item: { Args: { p_item: Json }; Returns: string };
       can_access_branch: { Args: { p_branch_id: string }; Returns: boolean };
       can_manage_branch: { Args: { p_branch_id: string }; Returns: boolean };
       is_admin: { Args: Record<PropertyKey, never>; Returns: boolean };

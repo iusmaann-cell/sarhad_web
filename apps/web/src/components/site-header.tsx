@@ -21,6 +21,18 @@ export async function SiteHeader() {
           {tc("brand")}
         </Link>
         <nav className="flex items-center gap-1 sm:gap-2">
+          <Link
+            href="/menu"
+            className="hidden rounded-md px-3 py-2 text-sm hover:bg-muted sm:inline-block"
+          >
+            {t("menu")}
+          </Link>
+          <Link
+            href="/branches"
+            className="hidden rounded-md px-3 py-2 text-sm hover:bg-muted sm:inline-block"
+          >
+            {t("branches")}
+          </Link>
           <LocaleSwitcher />
           {user ? (
             <>
