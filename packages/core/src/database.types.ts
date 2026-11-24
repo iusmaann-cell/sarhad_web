@@ -22,6 +22,7 @@ export type Database = {
       };
       branches: {
         Row: {
+          accepting_orders: boolean;
           accepts_delivery: boolean;
           accepts_pickup: boolean;
           address_ar: string | null;
@@ -43,6 +44,7 @@ export type Database = {
           whatsapp: string | null;
         };
         Insert: {
+          accepting_orders?: boolean;
           accepts_delivery?: boolean;
           accepts_pickup?: boolean;
           address_ar?: string | null;
@@ -122,6 +124,132 @@ export type Database = {
             columns: ["branch_id"];
             isOneToOne: false;
             referencedRelation: "branches";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      customer_addresses: {
+        Row: {
+          apartment: string | null;
+          area: string;
+          avenue: string | null;
+          block: string;
+          building: string;
+          created_at: string;
+          floor: string | null;
+          id: string;
+          is_default: boolean;
+          label: string | null;
+          latitude: number;
+          longitude: number;
+          notes: string | null;
+          street: string;
+          updated_at: string;
+          user_id: string;
+        };
+        Insert: {
+          apartment?: string | null;
+          area: string;
+          avenue?: string | null;
+          block: string;
+          building: string;
+          floor?: string | null;
+          id?: string;
+          is_default?: boolean;
+          label?: string | null;
+          latitude: number;
+          longitude: number;
+          notes?: string | null;
+          street: string;
+          user_id?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["customer_addresses"]["Insert"]>;
+        Relationships: [];
+      };
+      orders: {
+        Row: {
+          accepted_at: string | null;
+          address: Json | null;
+          branch_id: string;
+          cancel_reason: string | null;
+          cancelled_at: string | null;
+          client_ref: string;
+          completed_at: string | null;
+          created_at: string;
+          customer_id: string;
+          customer_name: string;
+          customer_phone: string;
+          delivery_fee_fils: number;
+          delivery_zone_id: string | null;
+          discount_fils: number;
+          eta_minutes: number | null;
+          id: string;
+          notes: string | null;
+          order_number: number;
+          payment_method: Database["public"]["Enums"]["payment_method"];
+          payment_status: Database["public"]["Enums"]["payment_status"];
+          ready_at: string | null;
+          status: Database["public"]["Enums"]["order_status"];
+          subtotal_fils: number;
+          total_fils: number;
+          type: Database["public"]["Enums"]["order_type"];
+          updated_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [
+          {
+            foreignKeyName: "orders_branch_id_fkey";
+            columns: ["branch_id"];
+            isOneToOne: false;
+            referencedRelation: "branches";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      order_items: {
+        Row: {
+          id: string;
+          item_id: string | null;
+          line_total_fils: number;
+          name_ar: string;
+          name_en: string;
+          notes: string | null;
+          options: Json;
+          order_id: string;
+          quantity: number;
+          sort_order: number;
+          unit_price_fils: number;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [
+          {
+            foreignKeyName: "order_items_order_id_fkey";
+            columns: ["order_id"];
+            isOneToOne: false;
+            referencedRelation: "orders";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      order_events: {
+        Row: {
+          actor_id: string | null;
+          created_at: string;
+          id: number;
+          note: string | null;
+          order_id: string;
+          status: Database["public"]["Enums"]["order_status"];
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [
+          {
+            foreignKeyName: "order_events_order_id_fkey";
+            columns: ["order_id"];
+            isOneToOne: false;
+            referencedRelation: "orders";
             referencedColumns: ["id"];
           },
         ];
@@ -346,6 +474,9 @@ export type Database = {
         }[];
       };
       save_delivery_zone: { Args: { p_zone: Json }; Returns: string };
+      branch_is_open: { Args: { p_branch_id: string; p_at?: string }; Returns: boolean };
+      place_order: { Args: { p_order: Json }; Returns: Json };
+      cancel_my_order: { Args: { p_order_id: string }; Returns: undefined };
       save_menu_item: { Args: { p_item: Json }; Returns: string };
       can_access_branch: { Args: { p_branch_id: string }; Returns: boolean };
       can_manage_branch: { Args: { p_branch_id: string }; Returns: boolean };
@@ -375,6 +506,17 @@ export type Database = {
     Enums: {
       app_locale: "ar" | "en";
       app_role: "owner" | "admin" | "branch_manager" | "staff";
+      order_type: "delivery" | "pickup";
+      order_status:
+        | "pending"
+        | "accepted"
+        | "preparing"
+        | "ready"
+        | "out_for_delivery"
+        | "completed"
+        | "cancelled";
+      payment_method: "cash";
+      payment_status: "unpaid" | "paid" | "refunded";
     };
     CompositeTypes: { [_ in never]: never };
   };

@@ -27,7 +27,6 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
     <>
       <section className="bg-gradient-to-b from-secondary to-background">
         <div className="mx-auto flex max-w-6xl flex-col items-start gap-6 px-4 py-20 sm:py-28">
-          <Badge variant="default">{tm("orderingSoon")}</Badge>
           <h1 className="max-w-2xl text-4xl font-bold leading-tight sm:text-5xl">
             {t("heroTitle")}
           </h1>
@@ -58,7 +57,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
           </div>
           <div className="grid gap-3 md:grid-cols-2">
             {featured.map((item) => (
-              <MenuItemCard key={item.id} item={item} locale={locale} />
+              <MenuItemCard key={item.id} item={item} locale={locale} branchId={branches[0]?.id} />
             ))}
           </div>
         </section>

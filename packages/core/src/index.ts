@@ -17,3 +17,4 @@ export function formatPrice(amountFils: number, locale: "ar" | "en"): string {
 export * from "./branches";
 export * from "./menu";
 export * from "./zones";
+export * from "./orders";

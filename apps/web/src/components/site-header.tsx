@@ -4,6 +4,7 @@ import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { getUser } from "@/lib/auth";
 
+import { CartButton } from "./cart/cart-button";
 import { LocaleSwitcher } from "./locale-switcher";
 import { SignOutButton } from "./sign-out-button";
 
@@ -40,10 +41,11 @@ export async function SiteHeader() {
             {t("delivery")}
           </Link>
           <LocaleSwitcher />
+          <CartButton />
           {user ? (
             <>
               <Button asChild variant="ghost" size="sm">
-                <Link href="/account">{t("account")}</Link>
+                <Link href="/orders">{t("orders")}</Link>
               </Button>
               <SignOutButton label={t("signOut")} />
             </>
