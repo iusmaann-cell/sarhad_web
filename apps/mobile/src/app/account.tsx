@@ -55,7 +55,7 @@ export default function Account() {
       </Card>
       <Card>
         <AppText style={{ fontWeight: "700" }}>{t("account.orders")}</AppText>
-        <AppText muted>{t("account.noOrders")}</AppText>
+        <Button title={t("nav.orders")} variant="outline" onPress={() => router.push("/orders")} />
       </Card>
       <Button title={t("nav.signOut")} variant="outline" onPress={signOut} />
     </Screen>

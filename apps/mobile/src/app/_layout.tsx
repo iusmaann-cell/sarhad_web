@@ -3,8 +3,10 @@ import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
 import { useColorScheme, View } from "react-native";
 
+import { CartButton } from "@/components/cart-button";
 import { LanguageButton } from "@/components/language-button";
 import { AuthProvider, useAuth } from "@/lib/auth";
+import { CartProvider } from "@/lib/cart";
 import { I18nProvider, useI18n } from "@/lib/i18n";
 import { useTheme } from "@/lib/theme";
 
@@ -26,7 +28,12 @@ function Navigator() {
           headerTintColor: theme.primary,
           headerStyle: { backgroundColor: theme.background },
           headerTitleStyle: { color: theme.text },
-          headerRight: () => <LanguageButton />,
+          headerRight: () => (
+            <View style={{ flexDirection: "row", gap: 16, alignItems: "center" }}>
+              <CartButton />
+              <LanguageButton />
+            </View>
+          ),
         }}
       >
         <Stack.Screen name="index" options={{ title: t("common.brand") }} />
@@ -37,6 +44,10 @@ function Navigator() {
         <Stack.Screen name="menu" options={{ title: t("menu.title") }} />
         <Stack.Screen name="branches" options={{ title: t("branchesPage.title") }} />
         <Stack.Screen name="delivery" options={{ title: t("nav.delivery") }} />
+        <Stack.Screen name="cart" options={{ title: t("cart.title") }} />
+        <Stack.Screen name="checkout" options={{ title: t("checkout.title") }} />
+        <Stack.Screen name="orders/index" options={{ title: t("orders.title") }} />
+        <Stack.Screen name="orders/[id]" options={{ title: t("orders.title") }} />
       </Stack>
     </View>
   );
@@ -48,7 +59,9 @@ export default function RootLayout() {
     <ThemeProvider value={scheme === "dark" ? DarkTheme : DefaultTheme}>
       <I18nProvider>
         <AuthProvider>
-          <Navigator />
+          <CartProvider>
+            <Navigator />
+          </CartProvider>
         </AuthProvider>
       </I18nProvider>
     </ThemeProvider>
