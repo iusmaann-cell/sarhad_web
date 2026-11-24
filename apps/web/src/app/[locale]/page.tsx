@@ -1,6 +1,6 @@
 import { localized, type Locale } from "@sarhad/i18n";
 import { Badge, Button, Card, CardContent, CardHeader, CardTitle } from "@sarhad/ui";
-import { MapPin, Phone } from "lucide-react";
+import { Bike, MapPin, Phone } from "lucide-react";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 
 import { MenuItemCard } from "@/components/menu/menu-item-card";
@@ -10,10 +10,11 @@ import { getBranches, getBranchMenu } from "@/lib/menu";
 export default async function HomePage({ params }: PageProps<"/[locale]">) {
   const locale = (await params).locale as Locale;
   setRequestLocale(locale);
-  const [t, tc, tm, branches] = await Promise.all([
+  const [t, tc, tm, td, branches] = await Promise.all([
     getTranslations("home"),
     getTranslations("common"),
     getTranslations("menu"),
+    getTranslations("delivery"),
     getBranches(),
   ]);
   const menu = branches[0] ? await getBranchMenu(branches[0].id) : [];
@@ -37,6 +38,11 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
             </Button>
             <Button asChild size="lg" variant="outline">
               <Link href="/branches">{t("ourBranches")}</Link>
+            </Button>
+            <Button asChild size="lg" variant="ghost">
+              <Link href="/delivery">
+                <Bike /> {td("homeCta")}
+              </Link>
             </Button>
           </div>
         </div>

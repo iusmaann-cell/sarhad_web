@@ -28,6 +28,11 @@ export default function Home() {
           variant="outline"
           onPress={() => router.push("/branches")}
         />
+        <Button
+          title={t("delivery.homeCta")}
+          variant="outline"
+          onPress={() => router.push("/delivery")}
+        />
       </View>
 
       <View style={{ gap: spacing.sm, marginTop: spacing.md }}>

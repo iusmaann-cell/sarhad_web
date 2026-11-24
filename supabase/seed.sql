@@ -99,3 +99,13 @@ begin
   insert into public.menu_items (category_id, name_en, name_ar, price_fils, sort_order)
   values (c_drinks, 'Doodh Patti Tea', 'شاي بالحليب', 400, 2);
 end $$;
+
+-- Sample delivery zones for the main branch (rough shapes, redraw in the back office).
+insert into public.delivery_zones (branch_id, name_en, name_ar, area, fee_fils, min_order_fils, eta_minutes, color, sort_order)
+select b.id, z.name_en, z.name_ar, extensions.st_geomfromtext(z.wkt, 4326), z.fee, z.min_order, z.eta, z.color, z.sort_order
+from public.branches b
+cross join (values
+  ('Kuwait City', 'مدينة الكويت', 'MULTIPOLYGON(((47.92 29.33,48.01 29.33,48.01 29.40,47.92 29.40,47.92 29.33)))', 500, 3000, 35, '#c2410c', 1),
+  ('Hawalli and Salmiya', 'حولي والسالمية', 'MULTIPOLYGON(((48.01 29.29,48.11 29.29,48.11 29.36,48.01 29.36,48.01 29.29)))', 750, 4000, 45, '#0f766e', 2)
+) as z(name_en, name_ar, wkt, fee, min_order, eta, color, sort_order)
+where b.slug = 'main';

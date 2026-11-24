@@ -74,7 +74,7 @@ export function filsToKwd(fils: number): string {
   return (fils / 1000).toFixed(3);
 }
 
-const kwdField = (message: string) =>
+export const kwdField = (message: string) =>
   z.string().transform((v, ctx) => {
     const fils = parseKwd(v);
     if (fils === null) {

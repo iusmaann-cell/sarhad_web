@@ -33,6 +33,12 @@ export async function SiteHeader() {
           >
             {t("branches")}
           </Link>
+          <Link
+            href="/delivery"
+            className="hidden rounded-md px-3 py-2 text-sm hover:bg-muted md:inline-block"
+          >
+            {t("delivery")}
+          </Link>
           <LocaleSwitcher />
           {user ? (
             <>

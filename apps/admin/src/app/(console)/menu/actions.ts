@@ -106,17 +106,15 @@ export async function setAvailability(
 ): Promise<ActionResult> {
   await requireStaff();
   const supabase = await createClient();
-  const { error } = await supabase
-    .from("branch_menu_items")
-    .upsert(
-      {
-        branch_id: branchId,
-        item_id: itemId,
-        is_available: isAvailable,
-        price_override_fils: priceOverrideFils,
-      },
-      { onConflict: "branch_id,item_id" },
-    );
+  const { error } = await supabase.from("branch_menu_items").upsert(
+    {
+      branch_id: branchId,
+      item_id: itemId,
+      is_available: isAvailable,
+      price_override_fils: priceOverrideFils,
+    },
+    { onConflict: "branch_id,item_id" },
+  );
   if (error) {
     return {
       ok: false,

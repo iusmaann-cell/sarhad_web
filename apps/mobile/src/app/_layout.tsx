@@ -36,6 +36,7 @@ function Navigator() {
         <Stack.Screen name="account" options={{ title: t("account.title") }} />
         <Stack.Screen name="menu" options={{ title: t("menu.title") }} />
         <Stack.Screen name="branches" options={{ title: t("branchesPage.title") }} />
+        <Stack.Screen name="delivery" options={{ title: t("nav.delivery") }} />
       </Stack>
     </View>
   );

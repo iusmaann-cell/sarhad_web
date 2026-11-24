@@ -37,7 +37,8 @@
     "account": "My account",
     "signIn": "Sign in",
     "signUp": "Create account",
-    "signOut": "Sign out"
+    "signOut": "Sign out",
+    "delivery": "Delivery areas"
   },
   "home": {
     "heroTitle": "Welcome to Sarhad",
@@ -103,7 +104,10 @@
     "invalidTime": "Use 24-hour time, e.g. 23:30",
     "invalidSlug": "Use lowercase English letters, numbers and dashes.",
     "bothCoordinates": "Enter both latitude and longitude, or neither.",
-    "slugTaken": "Another branch already uses this web address."
+    "slugTaken": "Another branch already uses this web address.",
+    "drawArea": "Draw the delivery area on the map.",
+    "invalidArea": "This shape is not a valid area. Draw it again.",
+    "invalidColor": "Choose a colour."
   },
   "admin": {
     "title": "Back office",
@@ -212,7 +216,30 @@
     "resetPrice": "Use base price",
     "availabilitySaved": "Saved.",
     "onlyManagersPrices": "Only a branch manager can change prices.",
-    "confirmDelete": "Delete this? This cannot be undone."
+    "confirmDelete": "Delete this? This cannot be undone.",
+    "zonesIntro": "Draw the areas each branch delivers to. Each area has its own delivery fee, minimum order and delivery time.",
+    "newZone": "New delivery area",
+    "editZone": "Edit delivery area",
+    "zoneName": "Area",
+    "zoneFee": "Delivery fee (KWD)",
+    "zoneMinOrder": "Minimum order (KWD)",
+    "zoneEta": "Delivery time (minutes)",
+    "zoneColor": "Colour on the map",
+    "zoneSaved": "Delivery area saved.",
+    "zoneDeleted": "Delivery area deleted.",
+    "noZones": "This branch has no delivery areas yet.",
+    "branchNoDelivery": "This branch is set to not offer delivery, so customers will not see these areas until delivery is switched on in the branch settings.",
+    "mapDraw": "Draw area",
+    "mapEdit": "Edit shape",
+    "mapDeleteSelected": "Delete selected shape",
+    "mapClear": "Clear all",
+    "mapHintDraw": "Click on the map to add corners. Click the first corner or press Enter to finish.",
+    "mapHintEdit": "Click a shape to select it, then drag its corners. Drag a middle point to add a corner.",
+    "mapShapes": "{count, plural, =0 {No shapes drawn} one {1 shape drawn} other {# shapes drawn}}",
+    "mapFallback": "The street map could not load. You can still draw, but place names are hidden.",
+    "otherZones": "Other areas of this branch are shown faded.",
+    "minutesShort": "{minutes} min",
+    "free": "Free"
   },
   "days": {
     "sat": "Saturday",
@@ -245,5 +272,28 @@
     "directions": "Directions",
     "whatsapp": "WhatsApp",
     "viewMenu": "View menu"
+  },
+  "delivery": {
+    "title": "Do we deliver to you?",
+    "intro": "Tap your location on the map or use your current location to see the delivery fee and time.",
+    "useMyLocation": "Use my location",
+    "locating": "Finding your location…",
+    "locationDenied": "We could not get your location. Tap the map instead.",
+    "pinHint": "Tap the map to place your pin.",
+    "checking": "Checking…",
+    "yes": "Yes, we deliver to {zone}",
+    "fromBranch": "From {branch}",
+    "fee": "Delivery fee",
+    "minOrder": "Minimum order",
+    "eta": "Delivery time",
+    "etaValue": "About {minutes} minutes",
+    "free": "Free",
+    "no": "Sorry, we don't deliver there yet",
+    "noBody": "You can still pick up your order from one of our branches.",
+    "seeBranches": "See branches",
+    "browseMenu": "Browse the menu",
+    "error": "Something went wrong. Please try again.",
+    "mapFallback": "The street map could not load. Use your location instead.",
+    "homeCta": "Check if we deliver to you"
   }
 }
