@@ -28,6 +28,7 @@ export default function Home() {
           variant="outline"
           onPress={() => router.push("/branches")}
         />
+        <Button title={t("nav.orders")} variant="outline" onPress={() => router.push("/orders")} />
         <Button
           title={t("delivery.homeCta")}
           variant="outline"

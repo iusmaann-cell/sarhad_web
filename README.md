@@ -53,6 +53,14 @@ Hosting is decided at the end of the project, so nothing here is tied to a host.
 - **Branches** can pause online orders (`accepting_orders`), used by the back office in Phase 6.
 - **Tests**: 23 more database tests (88 in total) and unit tests for the cart, checkout validation and order statuses.
 
+## Phase 5 (Mobile app ordering) delivers
+
+- **Cart** in the app, kept on the phone, one branch at a time, re-priced against the live menu when opened.
+- **Menu**: an Add button on each dish; dishes with add-ons open a sheet to pick options, quantity and a note.
+- **Checkout**: delivery or pickup, saved addresses, Kuwaiti address fields, the phone's location as the delivery pin, live delivery area check with fee and minimum, cash payment. Orders go through the same `place_order()` as the website.
+- **My orders** and an **order screen** with status steps (refreshes every 15 seconds) and cancel while pending.
+- Not yet: choosing the pin on a map inside the app (it uses the phone's location for now). Tested in the Expo web preview; test on real phones with Expo Go.
+
 ## Run it locally
 
 Requirements: Node 22, pnpm 10, Docker (for the local Supabase).

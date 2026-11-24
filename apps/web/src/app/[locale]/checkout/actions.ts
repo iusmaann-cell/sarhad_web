@@ -48,6 +48,20 @@ export async function placeOrder(input: {
 
   if (c.type === "delivery" && input.saveAddress) {
     const a = c.address;
+    const { data: same } = await supabase
+      .from("customer_addresses")
+      .select("id")
+      .eq("area", a.area)
+      .eq("block", a.block)
+      .eq("street", a.street)
+      .eq("building", a.building)
+      .limit(1);
+    if (same?.length)
+      return {
+        ok: true,
+        id: (data as { id: string }).id,
+        orderNumber: (data as { order_number: number }).order_number,
+      };
     // Saving the address is a convenience: an error here must not fail the order.
     await supabase.from("customer_addresses").insert({
       area: a.area,

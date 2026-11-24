@@ -1,17 +1,20 @@
-import { formatPrice, menuImageUrl, type MenuItem } from "@sarhad/core";
+import { cartCount, cartSubtotal, formatPrice, menuImageUrl, type MenuItem } from "@sarhad/core";
 import { localized } from "@sarhad/i18n";
 import { Image } from "expo-image";
+import { router } from "expo-router";
 import { useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, View } from "react-native";
 
-import { AppText, Card, Screen, Title } from "@/components/ui";
+import { ItemSheet } from "@/components/item-sheet";
+import { AppText, Button, Card, Screen, Title } from "@/components/ui";
 import { useBranches, useBranchMenu } from "@/lib/branches";
+import { useCart } from "@/lib/cart";
 import { useI18n } from "@/lib/i18n";
 import { spacing, useTheme } from "@/lib/theme";
 
 const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL ?? "";
 
-function ItemRow({ item }: { item: MenuItem }) {
+function ItemRow({ item, onAdd }: { item: MenuItem; onAdd: () => void }) {
   const { t, locale } = useI18n();
   const theme = useTheme();
   const img = menuImageUrl(SUPABASE_URL, item.image_path);
@@ -49,9 +52,23 @@ function ItemRow({ item }: { item: MenuItem }) {
               <AppText style={{ color: theme.danger, fontSize: 13, fontWeight: "600" }}>
                 {t("menu.soldOut")}
               </AppText>
-            ) : item.is_featured ? (
-              <AppText style={{ color: theme.primary, fontSize: 13 }}>{t("menu.featured")}</AppText>
-            ) : null}
+            ) : (
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={`${t("menu.add")}: ${localized(item, "name", locale)}`}
+                onPress={onAdd}
+                style={{
+                  backgroundColor: theme.primary,
+                  borderRadius: 999,
+                  paddingHorizontal: spacing.md,
+                  paddingVertical: spacing.xs,
+                }}
+              >
+                <AppText style={{ color: theme.primaryText, fontWeight: "700", fontSize: 14 }}>
+                  + {t("menu.add")}
+                </AppText>
+              </Pressable>
+            )}
           </View>
         </View>
       </View>
@@ -66,6 +83,9 @@ export default function MenuScreen() {
   const [branchId, setBranchId] = useState<string>();
   const current = branches.find((b) => b.id === branchId) ?? branches[0];
   const { menu, loading } = useBranchMenu(current?.id);
+  const { cart } = useCart();
+  const [sheetItem, setSheetItem] = useState<MenuItem | null>(null);
+  const count = cartCount(cart);
 
   return (
     <Screen>
@@ -115,10 +135,23 @@ export default function MenuScreen() {
             {localized(c, "name", locale)}
           </AppText>
           {c.items.map((item) => (
-            <ItemRow key={item.id} item={item} />
+            <ItemRow key={item.id} item={item} onAdd={() => setSheetItem(item)} />
           ))}
         </View>
       ))}
+
+      {count > 0 ? (
+        <View>
+          <Button
+            title={`${t("menu.viewCart")} · ${count} · ${formatPrice(cartSubtotal(cart), locale)}`}
+            onPress={() => router.push("/cart")}
+          />
+        </View>
+      ) : null}
+
+      {sheetItem && current ? (
+        <ItemSheet item={sheetItem} branchId={current.id} onClose={() => setSheetItem(null)} />
+      ) : null}
     </Screen>
   );
 }
