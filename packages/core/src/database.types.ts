@@ -477,6 +477,31 @@ export type Database = {
       branch_is_open: { Args: { p_branch_id: string; p_at?: string }; Returns: boolean };
       place_order: { Args: { p_order: Json }; Returns: Json };
       cancel_my_order: { Args: { p_order_id: string }; Returns: undefined };
+      update_order_status: {
+        Args: {
+          p_order_id: string;
+          p_status: Database["public"]["Enums"]["order_status"];
+          p_reason?: string;
+        };
+        Returns: Database["public"]["Enums"]["order_status"];
+      };
+      set_accepting_orders: { Args: { p_branch_id: string; p_accepting: boolean }; Returns: boolean };
+      order_stats: {
+        Args: { p_branch_id?: string };
+        Returns: {
+          orders_today: number;
+          open_orders: number;
+          sales_today_fils: number;
+          cancelled_today: number;
+        }[];
+      };
+      order_next_status: {
+        Args: {
+          p_type: Database["public"]["Enums"]["order_type"];
+          p_status: Database["public"]["Enums"]["order_status"];
+        };
+        Returns: Database["public"]["Enums"]["order_status"];
+      };
       save_menu_item: { Args: { p_item: Json }; Returns: string };
       can_access_branch: { Args: { p_branch_id: string }; Returns: boolean };
       can_manage_branch: { Args: { p_branch_id: string }; Returns: boolean };

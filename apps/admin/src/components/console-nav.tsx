@@ -25,7 +25,7 @@ type Item = {
 
 const ITEMS: Item[] = [
   { href: "/", key: "dashboard", icon: LayoutDashboard },
-  { href: "/orders", key: "orders", icon: ClipboardList, soon: true },
+  { href: "/orders", key: "orders", icon: ClipboardList },
   { href: "/menu", key: "menu", icon: UtensilsCrossed },
   { href: "/branches", key: "branches", icon: Store },
   { href: "/zones", key: "deliveryZones", icon: MapPinned },

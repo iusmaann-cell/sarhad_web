@@ -65,7 +65,12 @@ export default async function OrderPage({
       </div>
 
       {order.status === "cancelled" ? (
-        <Alert variant="destructive">{t("cancelled")}</Alert>
+        <Alert variant="destructive">
+          {t("cancelled")}
+          {order.cancel_reason && order.cancel_reason !== "customer"
+            ? ` ${t("cancelReason", { reason: order.cancel_reason })}`
+            : null}
+        </Alert>
       ) : (
         <Card>
           <CardContent className="grid gap-4 pt-6">
