@@ -7,7 +7,7 @@ import { refreshSession } from "./lib/supabase/proxy";
 const handleI18n = createIntlMiddleware(routing);
 
 // Pages that need a signed-in customer (without the locale prefix).
-const PROTECTED = ["/account"];
+const PROTECTED = ["/account", "/checkout", "/orders"];
 
 export async function proxy(request: NextRequest) {
   const response = handleI18n(request);

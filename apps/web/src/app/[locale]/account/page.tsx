@@ -1,9 +1,9 @@
 import type { Locale } from "@sarhad/i18n";
-import { Card, CardContent, CardHeader, CardTitle } from "@sarhad/ui";
+import { Button, Card, CardContent, CardHeader, CardTitle } from "@sarhad/ui";
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 
-import { redirect } from "@/i18n/navigation";
+import { Link, redirect } from "@/i18n/navigation";
 import { createClient } from "@/lib/supabase/server";
 
 export async function generateMetadata({
@@ -21,6 +21,7 @@ export default async function AccountPage({ params }: PageProps<"/[locale]/accou
   setRequestLocale(locale);
   const t = await getTranslations("account");
   const ta = await getTranslations("auth");
+  const tn = await getTranslations("nav");
 
   const supabase = await createClient();
   const { data: auth } = await supabase.auth.getUser();
@@ -61,7 +62,11 @@ export default async function AccountPage({ params }: PageProps<"/[locale]/accou
         <CardHeader>
           <CardTitle>{t("orders")}</CardTitle>
         </CardHeader>
-        <CardContent className="text-muted-foreground">{t("noOrders")}</CardContent>
+        <CardContent>
+          <Button asChild variant="outline">
+            <Link href="/orders">{tn("orders")}</Link>
+          </Button>
+        </CardContent>
       </Card>
     </div>
   );

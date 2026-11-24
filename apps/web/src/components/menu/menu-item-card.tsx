@@ -6,7 +6,18 @@ import { getTranslations } from "next-intl/server";
 
 import { imageBase } from "@/lib/menu";
 
-export async function MenuItemCard({ item, locale }: { item: MenuItem; locale: Locale }) {
+import { AddToCart } from "./add-to-cart";
+
+export async function MenuItemCard({
+  item,
+  locale,
+  branchId,
+}: {
+  item: MenuItem;
+  locale: Locale;
+  /** When set, shows the "Add" button for this branch. */
+  branchId?: string;
+}) {
   const t = await getTranslations("menu");
   const img = menuImageUrl(imageBase(), item.image_path);
   const name = localized(item, "name", locale);
@@ -75,11 +86,14 @@ export async function MenuItemCard({ item, locale }: { item: MenuItem; locale: L
           <span className="font-semibold tabular-nums text-primary">
             {formatPrice(item.price_fils, locale)}
           </span>
-          {item.calories ? (
-            <span className="text-xs text-muted-foreground">
-              {t("calories", { count: item.calories })}
-            </span>
-          ) : null}
+          <span className="flex items-center gap-3">
+            {item.calories ? (
+              <span className="text-xs text-muted-foreground">
+                {t("calories", { count: item.calories })}
+              </span>
+            ) : null}
+            {branchId ? <AddToCart item={item} branchId={branchId} /> : null}
+          </span>
         </div>
       </div>
     </Card>

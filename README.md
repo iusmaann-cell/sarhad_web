@@ -44,6 +44,15 @@ Hosting is decided at the end of the project, so nothing here is tied to a host.
 - **Maps** use MapLibre with the free OpenFreeMap style (no API key, no cost). Set `NEXT_PUBLIC_MAP_STYLE_URL` to use another style. If the map style cannot load, a plain background is shown and drawing still works.
 - **Tests**: 19 more database tests (65 in total) and unit tests for area shapes and the zone form.
 
+## Phase 4 (Website ordering) delivers
+
+- **Cart**: add dishes from the menu with their add-ons, quantity and a note for the kitchen. The cart is kept in the browser, belongs to one branch, and is re-priced against the live menu whenever it is opened (sold-out dishes are removed).
+- **Checkout**: delivery or pickup, Kuwaiti address (area, block, street, avenue, building, floor, apartment) with a pin on the map, saved addresses, name and mobile, order notes, and cash payment. The delivery area, fee and minimum order show as soon as the pin is placed. Closed branches cannot take orders.
+- **`place_order()`** checks everything again on the server: sign-in, branch open and taking orders, dishes available, add-on rules, prices, delivery area, fee and minimum. Sending the same order twice creates it only once.
+- **Order page** with a live status tracker (refreshes every 15 seconds), items, totals, address, call the branch, and cancel while the branch has not accepted. **My orders** lists past orders.
+- **Branches** can pause online orders (`accepting_orders`), used by the back office in Phase 6.
+- **Tests**: 23 more database tests (88 in total) and unit tests for the cart, checkout validation and order statuses.
+
 ## Run it locally
 
 Requirements: Node 22, pnpm 10, Docker (for the local Supabase).
@@ -95,7 +104,7 @@ pnpm build
 1. Foundations (done)
 2. Menu and branches (done)
 3. Delivery zones (done)
-4. Website ordering
+4. Website ordering (done)
 5. Mobile apps
 6. Order operations
 7. Payments and promotions (cash first, then pluggable gateways)

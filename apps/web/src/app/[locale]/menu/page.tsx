@@ -1,5 +1,4 @@
 import { localized, type Locale } from "@sarhad/i18n";
-import { Badge } from "@sarhad/ui";
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 
@@ -31,7 +30,6 @@ export default async function MenuPage({ params, searchParams }: PageProps<"/[lo
           <h1 className="text-3xl font-bold">{t("title")}</h1>
           <p className="text-muted-foreground">{t("subtitle")}</p>
         </div>
-        <Badge variant="secondary">{t("orderingSoon")}</Badge>
       </div>
 
       {branches.length > 1 ? (
@@ -75,7 +73,7 @@ export default async function MenuPage({ params, searchParams }: PageProps<"/[lo
               ) : null}
               <div className="grid gap-3 md:grid-cols-2">
                 {c.items.map((item) => (
-                  <MenuItemCard key={item.id} item={item} locale={locale} />
+                  <MenuItemCard key={item.id} item={item} locale={locale} branchId={branch?.id} />
                 ))}
               </div>
             </section>

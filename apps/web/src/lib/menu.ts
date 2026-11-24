@@ -19,6 +19,7 @@ export type PublicBranch = Pick<
   | "longitude"
   | "accepts_delivery"
   | "accepts_pickup"
+  | "accepting_orders"
   | "timezone"
 > & { opening_hours: OpeningHours };
 
@@ -28,7 +29,7 @@ export async function getBranches(): Promise<PublicBranch[]> {
   const { data } = await supabase
     .from("branches")
     .select(
-      "id, slug, name_en, name_ar, address_en, address_ar, phone, whatsapp, latitude, longitude, accepts_delivery, accepts_pickup, timezone, opening_hours",
+      "id, slug, name_en, name_ar, address_en, address_ar, phone, whatsapp, latitude, longitude, accepts_delivery, accepts_pickup, accepting_orders, timezone, opening_hours",
     )
     .eq("is_active", true)
     .order("sort_order");
