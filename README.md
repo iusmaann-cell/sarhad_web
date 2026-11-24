@@ -61,6 +61,18 @@ Hosting is decided at the end of the project, so nothing here is tied to a host.
 - **My orders** and an **order screen** with status steps (refreshes every 15 seconds) and cancel while pending.
 - Not yet: choosing the pin on a map inside the app (it uses the phone's location for now). Tested in the Expo web preview; test on real phones with Expo Go.
 
+## Phase 6 (Order operations) delivers
+
+- **Live orders board** in the back office (`/orders`): New, In the kitchen, and Ready columns per branch, refreshed every 10 seconds. New orders show a count in the browser tab and can play a chime (turn on sound once per session). Orders waiting more than 5 minutes are highlighted.
+- **One-tap status changes**: Accept, Start preparing, Mark ready, Out for delivery (delivery only), Complete. Cash is marked as collected when an order is completed.
+- **Cancel with a reason** (quick reasons or your own words). The customer sees the reason on the website and in the app.
+- **Pause online orders** for a branch, for example when the kitchen is too busy. Customers cannot order from a paused branch.
+- **Order page** with items, add-ons, notes, customer phone, address with a map link, a status history (who and when), and a print button for kitchen tickets.
+- **Order history** with search (order number, phone or name), status, branch and date filters.
+- **Dashboard** shows open orders, orders today, sales today and cancellations.
+- **`update_order_status()`** and **`set_accepting_orders()`** check on the server that the staff member works at the branch and that the step is allowed.
+- **Tests**: 18 more database tests (106 in total).
+
 ## Run it locally
 
 Requirements: Node 22, pnpm 10, Docker (for the local Supabase).
@@ -113,7 +125,7 @@ pnpm build
 2. Menu and branches (done)
 3. Delivery zones (done)
 4. Website ordering (done)
-5. Mobile apps
-6. Order operations
+5. Mobile apps (ordering done; store release in Launch)
+6. Order operations (done)
 7. Payments and promotions (cash first, then pluggable gateways)
 8. Launch

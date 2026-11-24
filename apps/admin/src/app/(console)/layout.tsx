@@ -16,7 +16,7 @@ export default async function ConsoleLayout({ children }: LayoutProps<"/">) {
 
   return (
     <div className="flex min-h-screen flex-col md:flex-row">
-      <aside className="flex flex-col gap-6 border-b bg-card p-4 md:w-64 md:border-b-0 md:border-e">
+      <aside className="flex print:hidden flex-col gap-6 border-b bg-card p-4 md:w-64 md:border-b-0 md:border-e">
         <div>
           <p className="text-lg font-bold text-primary">{tc("brand")}</p>
           <p className="text-xs text-muted-foreground">{t("title")}</p>
@@ -37,7 +37,7 @@ export default async function ConsoleLayout({ children }: LayoutProps<"/">) {
           </div>
         </div>
       </aside>
-      <main className="flex-1 p-4 md:p-8">{children}</main>
+      <main className="flex-1 p-4 md:p-8 print:p-0">{children}</main>
     </div>
   );
 }

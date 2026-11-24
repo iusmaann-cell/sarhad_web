@@ -2,6 +2,9 @@ import { describe, expect, it } from "vitest";
 
 import type { MenuItem } from "./menu";
 import {
+  boardColumn,
+  minutesSince,
+  statusErrorCode,
   addToCart,
   cartCount,
   cartSubtotal,
@@ -138,5 +141,25 @@ describe("order status", () => {
     expect(nextStatuses("pickup", "ready")).toEqual(["completed", "cancelled"]);
     expect(nextStatuses("delivery", "ready")).toEqual(["out_for_delivery", "cancelled"]);
     expect(nextStatuses("delivery", "completed")).toEqual([]);
+  });
+});
+
+describe("back office board", () => {
+  it("puts each open order in one column", () => {
+    expect(boardColumn("pending")).toBe("new");
+    expect(boardColumn("preparing")).toBe("kitchen");
+    expect(boardColumn("out_for_delivery")).toBe("ready");
+    expect(boardColumn("completed")).toBeNull();
+  });
+
+  it("counts whole minutes and never goes negative", () => {
+    const now = new Date("2026-11-25T10:10:30Z");
+    expect(minutesSince("2026-11-25T10:00:00Z", now)).toBe(10);
+    expect(minutesSince("2026-11-25T10:20:00Z", now)).toBe(0);
+  });
+
+  it("reads status error codes", () => {
+    expect(statusErrorCode("reason_required")).toBe("reason_required");
+    expect(statusErrorCode("boom")).toBe("unknown");
   });
 });

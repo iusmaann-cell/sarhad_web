@@ -249,3 +249,41 @@ export function formatAddress(
     .filter(Boolean)
     .join(", ");
 }
+
+// ---------------------------------------------------------------------------
+// Back office board
+// ---------------------------------------------------------------------------
+
+export type BoardColumn = "new" | "kitchen" | "ready";
+
+export const BOARD_COLUMNS: BoardColumn[] = ["new", "kitchen", "ready"];
+
+/** Which column of the live orders board an order sits in (null once it is closed). */
+export function boardColumn(status: OrderStatus): BoardColumn | null {
+  switch (status) {
+    case "pending":
+      return "new";
+    case "accepted":
+    case "preparing":
+      return "kitchen";
+    case "ready":
+    case "out_for_delivery":
+      return "ready";
+    default:
+      return null;
+  }
+}
+
+/** Whole minutes since a time, never negative. */
+export function minutesSince(iso: string, now: Date = new Date()): number {
+  return Math.max(0, Math.floor((now.getTime() - new Date(iso).getTime()) / 60000));
+}
+
+/** Error codes from update_order_status(). */
+export const STATUS_ERROR_CODES = ["not_found", "invalid_status", "reason_required"] as const;
+export type StatusErrorCode = (typeof STATUS_ERROR_CODES)[number];
+
+export function statusErrorCode(message: string | undefined): StatusErrorCode | "unknown" {
+  const code = STATUS_ERROR_CODES.find((c) => message?.includes(c));
+  return code ?? "unknown";
+}

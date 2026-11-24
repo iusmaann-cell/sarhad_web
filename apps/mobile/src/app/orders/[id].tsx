@@ -86,7 +86,12 @@ export default function OrderScreen() {
       {placed ? <Notice kind="success">{t("orders.thanks")}</Notice> : null}
       <Title>{t("orders.orderNumber", { number: order.order_number })}</Title>
       {order.status === "cancelled" ? (
-        <Notice kind="error">{t("orders.cancelled")}</Notice>
+        <Notice kind="error">
+          {t("orders.cancelled")}
+          {order.cancel_reason && order.cancel_reason !== "customer"
+            ? ` ${t("orders.cancelReason", { reason: order.cancel_reason })}`
+            : ""}
+        </Notice>
       ) : (
         <Card>
           {steps.map((s, i) => {
