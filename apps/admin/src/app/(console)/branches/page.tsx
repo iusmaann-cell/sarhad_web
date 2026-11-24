@@ -1,12 +1,15 @@
 import { localized } from "@sarhad/i18n";
-import { Badge, Card } from "@sarhad/ui";
+import { canManageBranch } from "@sarhad/core";
+import { Badge, Button, Card } from "@sarhad/ui";
+import { Plus } from "lucide-react";
+import Link from "next/link";
 import { getLocale, getTranslations } from "next-intl/server";
 
 import { requireStaff } from "@/lib/staff";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function BranchesPage() {
-  await requireStaff();
+  const staff = await requireStaff();
   const [t, tc, th, locale] = await Promise.all([
     getTranslations("admin"),
     getTranslations("common"),
@@ -22,7 +25,16 @@ export default async function BranchesPage() {
 
   return (
     <div className="grid gap-6">
-      <h1 className="text-2xl font-bold">{t("branches")}</h1>
+      <div className="flex items-center justify-between gap-4">
+        <h1 className="text-2xl font-bold">{t("branches")}</h1>
+        {staff.isAdmin ? (
+          <Button asChild>
+            <Link href="/branches/new">
+              <Plus /> {t("newBranch")}
+            </Link>
+          </Button>
+        ) : null}
+      </div>
       <Card className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead className="border-b text-muted-foreground">
@@ -31,6 +43,7 @@ export default async function BranchesPage() {
               <th className="p-3 text-start font-medium">{t("branchPhone")}</th>
               <th className="p-3 text-start font-medium">{t("branchServices")}</th>
               <th className="p-3 text-start font-medium">{t("branchStatus")}</th>
+              <th className="p-3" />
             </tr>
           </thead>
           <tbody>
@@ -48,6 +61,13 @@ export default async function BranchesPage() {
                   <Badge variant={b.is_active ? "success" : "muted"}>
                     {b.is_active ? tc("active") : tc("inactive")}
                   </Badge>
+                </td>
+                <td className="p-3 text-end">
+                  {canManageBranch(staff.roles, b.id) ? (
+                    <Button asChild variant="ghost" size="sm">
+                      <Link href={`/branches/${b.id}`}>{tc("edit")}</Link>
+                    </Button>
+                  ) : null}
                 </td>
               </tr>
             ))}

@@ -13,3 +13,6 @@ export {
 export { Field } from "./components/field";
 export { Input } from "./components/input";
 export { Label } from "./components/label";
+export { Checkbox } from "./components/checkbox";
+export { Select } from "./components/select";
+export { Textarea } from "./components/textarea";

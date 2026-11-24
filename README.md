@@ -25,6 +25,16 @@ Hosting is decided at the end of the project, so nothing here is tied to a host.
 - **Back office shell**: dashboard, branches list, staff management (add a role by email, remove a role). Orders, menu, delivery zones and settings show as "coming soon".
 - **Tests**: 22 database security tests (pgTAP), unit tests for roles, validation and translations, and CI on every pull request.
 
+## Phase 2 (Menu and branches) delivers
+
+- **Menu**: categories, items (Arabic and English names and descriptions, price in KWD, photo, calories, "popular" flag) and add-ons such as Size (choose 1, required) or Extras (choose up to 3). Saved in one step by `save_menu_item()`, so an item and its add-ons never get out of sync.
+- **Per-branch control**: any branch staff member can mark an item sold out in their branch. Only branch managers and admins can set a branch-specific price. Each branch keeps the base price unless it sets its own.
+- **Branches in the back office**: add and edit branches with names, address, phone, WhatsApp, map pin (latitude and longitude), delivery or pickup, visibility and weekly opening hours, including hours past midnight.
+- **Menu photos** go to the public `menu-images` storage bucket. Only admins can upload.
+- **Website**: `/menu` (switch branch, jump to category, sold-out and add-on details) and `/branches` (open now, hours, call, WhatsApp, directions). The home page shows popular dishes.
+- **Mobile app**: Menu and Branches screens.
+- **Tests**: 24 more database tests (46 in total) and unit tests for prices, add-on rules, opening hours and the forms.
+
 ## Run it locally
 
 Requirements: Node 22, pnpm 10, Docker (for the local Supabase).
@@ -73,8 +83,8 @@ pnpm build
 
 ## Roadmap
 
-1. Foundations (this phase)
-2. Menu and branches
+1. Foundations (done)
+2. Menu and branches (done)
 3. Delivery zones (geofences per branch on a map)
 4. Website ordering
 5. Mobile apps
