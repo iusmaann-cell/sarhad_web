@@ -5,7 +5,6 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 
 import { CheckoutForm } from "@/components/checkout/checkout-form";
 import { redirect } from "@/i18n/navigation";
-import { getDeliveryAreas } from "@/lib/delivery";
 import { getBranches } from "@/lib/menu";
 import { allowTestGateway } from "@/lib/payments/gateways";
 import { hasAdminKey } from "@/lib/supabase/admin";
@@ -28,11 +27,10 @@ export default async function CheckoutPage({ params }: PageProps<"/[locale]/chec
   const { data: auth } = await supabase.auth.getUser();
   if (!auth.user) redirect({ href: "/sign-in?next=/checkout", locale });
 
-  const [t, branches, zones, { data: profile }, { data: addresses }, { data: providers }] =
+  const [t, branches, { data: profile }, { data: addresses }, { data: providers }] =
     await Promise.all([
       getTranslations("checkout"),
       getBranches(),
-      getDeliveryAreas(),
       supabase.from("profiles").select("full_name, phone").eq("id", auth.user!.id).maybeSingle(),
       supabase
         .from("customer_addresses")
@@ -54,7 +52,7 @@ export default async function CheckoutPage({ params }: PageProps<"/[locale]/chec
 
   return (
     <div className="mx-auto grid max-w-5xl gap-6 px-4 py-8">
-      <h1 className="text-3xl font-bold">{t("title")}</h1>
+      <h1 className="text-3xl font-extrabold">{t("title")}</h1>
       <CheckoutForm
         branches={branches.map((b) => ({
           id: b.id,
@@ -65,7 +63,6 @@ export default async function CheckoutPage({ params }: PageProps<"/[locale]/chec
           accepts_pickup: b.accepts_pickup,
           open: b.accepting_orders && isOpenAt(b.opening_hours, now, b.timezone),
         }))}
-        zones={zones}
         profile={{ name: profile?.full_name ?? "", phone: profile?.phone ?? "" }}
         addresses={addresses ?? []}
         providers={online.map(({ id, name_en, name_ar }) => ({ id, name_en, name_ar }))}

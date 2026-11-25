@@ -149,7 +149,7 @@ export default async function OrderPage({
               </div>
             ) : null}
             {order.discount_fils > 0 ? (
-              <div className="flex justify-between text-emerald-700">
+              <div className="flex justify-between text-success">
                 <span>
                   {tc("discount")}
                   {order.promo_code ? ` (${order.promo_code})` : ""}

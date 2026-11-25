@@ -1,7 +1,7 @@
 import { formatPrice, menuImageUrl, type MenuItem } from "@sarhad/core";
 import { localized, type Locale } from "@sarhad/i18n";
-import { Badge, Card, cn } from "@sarhad/ui";
-import { UtensilsCrossed } from "lucide-react";
+import { cn } from "@sarhad/ui";
+import Image from "next/image";
 import { getTranslations } from "next-intl/server";
 
 import { imageBase } from "@/lib/menu";
@@ -24,78 +24,56 @@ export async function MenuItemCard({
   const description = localized(item, "description", locale);
 
   return (
-    <Card className={cn("flex gap-4 overflow-hidden p-3", !item.is_available && "opacity-60")}>
-      {img ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          src={img}
-          alt={name}
-          loading="lazy"
-          className="size-24 shrink-0 rounded-lg object-cover sm:size-28"
-        />
-      ) : (
-        <div
-          className="flex size-24 shrink-0 items-center justify-center rounded-lg bg-secondary text-secondary-foreground sm:size-28"
-          aria-hidden
-        >
-          <UtensilsCrossed className="size-8 opacity-50" />
-        </div>
+    <article
+      className={cn(
+        "flex flex-col overflow-hidden rounded-[1.25rem] border border-border bg-card transition-colors hover:border-[#3a3a3a]",
+        !item.is_available && "opacity-60",
       )}
-      <div className="flex min-w-0 flex-1 flex-col gap-1">
-        <div className="flex flex-wrap items-center gap-2">
-          <h3 className="font-semibold">{name}</h3>
-          {item.is_featured ? <Badge>{t("featured")}</Badge> : null}
-          {!item.is_available ? <Badge variant="muted">{t("soldOut")}</Badge> : null}
+    >
+      <div className="relative aspect-[4/3] bg-[#1b1b1b]">
+        {img ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={img} alt={name} loading="lazy" className="size-full object-cover" />
+        ) : (
+          // Placeholder until the owner's food photos are uploaded in the back office.
+          <div className="flex size-full items-center justify-center" aria-hidden>
+            <Image
+              src="/brand/logo.png"
+              alt=""
+              width={120}
+              height={108}
+              className="h-1/2 w-auto opacity-20 grayscale"
+            />
+          </div>
+        )}
+        <div className="absolute start-3 top-3 flex flex-wrap gap-1.5">
+          {item.is_featured ? (
+            <span className="rounded-full bg-primary px-2.5 py-1 text-xs font-bold text-black">
+              {t("featured")}
+            </span>
+          ) : null}
+          {!item.is_available ? (
+            <span className="rounded-full bg-black/80 px-2.5 py-1 text-xs font-bold text-muted-foreground">
+              {t("soldOut")}
+            </span>
+          ) : null}
         </div>
+      </div>
+      <div className="flex flex-1 flex-col gap-1.5 p-4">
+        <h3 className="text-lg font-extrabold leading-snug">{name}</h3>
         {description ? (
           <p className="line-clamp-2 text-sm text-muted-foreground">{description}</p>
         ) : null}
-        {item.modifier_groups.length > 0 ? (
-          <details className="text-sm">
-            <summary className="cursor-pointer text-primary">{t("options")}</summary>
-            <div className="mt-2 grid gap-2">
-              {item.modifier_groups.map((g) => (
-                <div key={g.id}>
-                  <p className="font-medium">
-                    {localized(g, "name", locale)}{" "}
-                    <span className="text-xs font-normal text-muted-foreground">
-                      {g.min_select > 0 ? `${t("required")} · ` : ""}
-                      {g.min_select === g.max_select
-                        ? t("choose", { count: g.max_select })
-                        : t("chooseUpTo", { count: g.max_select })}
-                    </span>
-                  </p>
-                  <ul className="text-muted-foreground">
-                    {g.options.map((o) => (
-                      <li key={o.id} className="flex justify-between gap-2">
-                        <span>{localized(o, "name", locale)}</span>
-                        {o.price_delta_fils > 0 ? (
-                          <span className="tabular-nums">
-                            +{formatPrice(o.price_delta_fils, locale)}
-                          </span>
-                        ) : null}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
-            </div>
-          </details>
+        {item.calories ? (
+          <p className="text-xs text-muted-foreground">{t("calories", { count: item.calories })}</p>
         ) : null}
-        <div className="mt-auto flex items-center justify-between gap-2 pt-1">
-          <span className="font-semibold tabular-nums text-primary">
+        <div className="mt-auto flex items-center justify-between gap-2 pt-2">
+          <span className="text-lg font-extrabold tabular-nums">
             {formatPrice(item.price_fils, locale)}
           </span>
-          <span className="flex items-center gap-3">
-            {item.calories ? (
-              <span className="text-xs text-muted-foreground">
-                {t("calories", { count: item.calories })}
-              </span>
-            ) : null}
-            {branchId ? <AddToCart item={item} branchId={branchId} /> : null}
-          </span>
+          {branchId ? <AddToCart item={item} branchId={branchId} /> : null}
         </div>
       </div>
-    </Card>
+    </article>
   );
 }

@@ -17,7 +17,9 @@ export function LocaleSwitcher() {
     <Button asChild variant="ghost" size="sm">
       <Link href={pathname} locale={next} hrefLang={next} aria-label={t("language")}>
         <Languages aria-hidden />
-        <span lang={next}>{t("switchLanguage")}</span>
+        <span lang={next} className="hidden sm:inline">
+          {t("switchLanguage")}
+        </span>
       </Link>
     </Button>
   );

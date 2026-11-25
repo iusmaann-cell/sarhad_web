@@ -2,7 +2,7 @@
 
 import {
   cartToOrderItems,
-  checkoutSchema,
+  areaCheckoutSchema,
   fieldErrors,
   normalizePromoCode,
   orderErrorCode,
@@ -25,7 +25,7 @@ export async function placeOrder(input: {
   /** null: cash; otherwise the id of an online payment option. */
   providerId?: string | null;
 }): Promise<PlaceOrderResult> {
-  const parsed = checkoutSchema.safeParse(input.checkout);
+  const parsed = areaCheckoutSchema.safeParse(input.checkout);
   if (!parsed.success) return { ok: false, fieldErrors: fieldErrors(parsed.error) };
   const c = parsed.data;
   if (!input.cart.branchId || input.cart.lines.length === 0) {
@@ -39,7 +39,9 @@ export async function placeOrder(input: {
   const { data, error } = await supabase.rpc("place_order", {
     p_order: {
       client_ref: input.clientRef,
+      // For delivery the area decides the branch on the server; this is only used for pickup.
       branch_id: input.cart.branchId,
+      delivery_area_id: c.type === "delivery" ? c.areaId : null,
       type: c.type,
       customer_name: c.name,
       customer_phone: c.phone,
@@ -63,6 +65,8 @@ export async function placeOrder(input: {
 
   if (c.type === "delivery" && input.saveAddress) {
     const a = c.address;
+    // A saved address needs its map pin (the mobile app delivers by pin).
+    if (a.latitude == null || a.longitude == null) return done;
     const { data: same } = await supabase
       .from("customer_addresses")
       .select("id")

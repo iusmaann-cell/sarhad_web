@@ -3,6 +3,7 @@ import {
   amountToMinimum,
   areaContains,
   fromZoneArea,
+  groupAreasByCity,
   toZoneArea,
   zoneSchema,
   type LngLat,
@@ -28,6 +29,7 @@ const valid = {
   color: "#c2410c",
   isActive: true,
   area: { type: "Polygon", coordinates: square },
+  areas: [{ cityEn: "Capital", cityAr: "العاصمة", nameEn: "Sharq", nameAr: "شرق" }],
 };
 
 describe("delivery zones", () => {
@@ -84,5 +86,27 @@ describe("delivery zones", () => {
   it("works out the amount left to reach the minimum order", () => {
     expect(amountToMinimum(2000, 3000)).toBe(1000);
     expect(amountToMinimum(3500, 3000)).toBe(0);
+  });
+
+  it("checks the named areas of a zone", () => {
+    expect(zoneSchema.safeParse({ ...valid, areas: [] }).success).toBe(true);
+    const blank = zoneSchema.safeParse({ ...valid, areas: [{ ...valid.areas[0], nameAr: " " }] });
+    expect(blank.success).toBe(false);
+    const twice = zoneSchema.safeParse({
+      ...valid,
+      areas: [valid.areas[0], { ...valid.areas[0], nameEn: " sharq " }],
+    });
+    expect(twice.success).toBe(false);
+    expect(twice.error!.issues.map((i) => i.message)).toContain("duplicateArea");
+  });
+
+  it("groups areas by city in order", () => {
+    const groups = groupAreasByCity([
+      { city_en: "Hawalli", name_en: "Salmiya" },
+      { city_en: "Capital", name_en: "Sharq" },
+      { city_en: "Hawalli", name_en: "Jabriya" },
+    ]);
+    expect(groups.map((g) => g.city)).toEqual(["Hawalli", "Capital"]);
+    expect(groups[0]!.areas.map((a) => a.name_en)).toEqual(["Salmiya", "Jabriya"]);
   });
 });

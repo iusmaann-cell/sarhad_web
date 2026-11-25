@@ -111,9 +111,9 @@ export function AddToCart({ item, branchId }: { item: MenuItem; branchId: string
 
   return (
     <>
-      <Button
+      <button
         type="button"
-        size="sm"
+        className="btn-brand inline-flex h-10 items-center gap-1.5 px-4 text-sm [&_svg]:size-4"
         onClick={() => {
           if (simple && !otherBranch) {
             add(branchId, makeCartLine(item, [], 1));
@@ -123,26 +123,26 @@ export function AddToCart({ item, branchId }: { item: MenuItem; branchId: string
         }}
         aria-label={`${t("add")}: ${name}`}
       >
-        <Plus /> {added && simple ? t("added") : t("add")}
-      </Button>
+        <Plus aria-hidden /> {added && simple ? t("added") : t("add")}
+      </button>
 
       <dialog
         ref={dialog}
-        className="m-auto w-[min(32rem,calc(100vw-2rem))] rounded-xl border bg-background p-0 text-foreground shadow-xl backdrop:bg-black/40"
+        className="m-auto w-[min(32rem,calc(100vw-2rem))] rounded-[1.75rem] border border-border bg-card p-0 text-foreground shadow-2xl backdrop:bg-black/75 backdrop:backdrop-blur-sm"
         aria-label={name}
       >
         <form onSubmit={submit} className="grid max-h-[85vh] grid-rows-[auto_1fr_auto]">
           <div className="flex items-start justify-between gap-4 border-b p-4">
             <div>
-              <h2 className="text-lg font-semibold">{name}</h2>
-              <p className="text-sm tabular-nums text-muted-foreground">
+              <h2 className="text-xl font-extrabold">{name}</h2>
+              <p className="font-bold tabular-nums text-brand-amber">
                 {formatPrice(item.price_fils, locale)}
               </p>
             </div>
             <button
               type="button"
               onClick={() => dialog.current?.close()}
-              className="rounded-md p-1 hover:bg-muted"
+              className="flex size-10 items-center justify-center rounded-full bg-secondary hover:bg-[#262626]"
               aria-label={t("close")}
             >
               <X className="size-5" />
@@ -151,7 +151,7 @@ export function AddToCart({ item, branchId }: { item: MenuItem; branchId: string
 
           <div className="grid gap-5 overflow-y-auto p-4">
             {otherBranch ? (
-              <p className="rounded-md bg-amber-50 p-3 text-sm text-amber-900">
+              <p className="rounded-xl bg-brand-amber/10 p-3 text-sm text-brand-amber">
                 {t("otherBranchCart")}
               </p>
             ) : null}
@@ -173,7 +173,7 @@ export function AddToCart({ item, branchId }: { item: MenuItem; branchId: string
                   {g.options.map((o) => (
                     <label
                       key={o.id}
-                      className="flex cursor-pointer items-center justify-between gap-3 rounded-lg border px-3 py-2 has-[:checked]:border-primary has-[:checked]:bg-secondary"
+                      className="flex min-h-12 cursor-pointer items-center justify-between gap-3 rounded-xl border-2 border-border bg-black px-3 py-2 font-medium has-[:checked]:border-primary has-[:checked]:bg-primary/10"
                     >
                       <span className="flex items-center gap-3">
                         <input
@@ -181,7 +181,7 @@ export function AddToCart({ item, branchId }: { item: MenuItem; branchId: string
                           name={`g-${g.id}`}
                           checked={selected.includes(o.id)}
                           onChange={() => toggle(g.id, o.id, single)}
-                          className="size-4 accent-[var(--color-primary)]"
+                          className="size-[18px] accent-[var(--brand-orange)]"
                         />
                         {localized(o, "name", locale)}
                       </span>
@@ -218,9 +218,9 @@ export function AddToCart({ item, branchId }: { item: MenuItem; branchId: string
                 <Link href="/cart">{t("viewCart")}</Link>
               </Button>
             ) : (
-              <Button type="submit" className="flex-1">
+              <button type="submit" className="btn-brand h-12 flex-1 px-4">
                 {t("addToCartTotal", { total: formatPrice(total, locale) })}
-              </Button>
+              </button>
             )}
           </div>
         </form>
