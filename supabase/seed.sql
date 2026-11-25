@@ -109,3 +109,19 @@ cross join (values
   ('Hawalli and Salmiya', 'حولي والسالمية', 'MULTIPOLYGON(((48.01 29.29,48.11 29.29,48.11 29.36,48.01 29.36,48.01 29.29)))', 750, 4000, 45, '#0f766e', 2)
 ) as z(name_en, name_ar, wkt, fee, min_order, eta, color, sort_order)
 where b.slug = 'main';
+
+-- Sample delivery areas (city, then area) for the zones above. The website lists
+-- these; each order goes to the branch whose zone lists the chosen area.
+insert into public.delivery_areas (zone_id, city_en, city_ar, name_en, name_ar, sort_order)
+select z.id, a.city_en, a.city_ar, a.name_en, a.name_ar, a.sort_order
+from public.delivery_zones z
+join (values
+  ('Kuwait City', 'Capital', 'العاصمة', 'Sharq', 'شرق', 1),
+  ('Kuwait City', 'Capital', 'العاصمة', 'Qibla', 'القبلة', 2),
+  ('Kuwait City', 'Capital', 'العاصمة', 'Dasman', 'دسمان', 3),
+  ('Kuwait City', 'Capital', 'العاصمة', 'Mirqab', 'المرقاب', 4),
+  ('Hawalli and Salmiya', 'Hawalli', 'حولي', 'Hawalli', 'حولي', 1),
+  ('Hawalli and Salmiya', 'Hawalli', 'حولي', 'Salmiya', 'السالمية', 2),
+  ('Hawalli and Salmiya', 'Hawalli', 'حولي', 'Jabriya', 'الجابرية', 3),
+  ('Hawalli and Salmiya', 'Hawalli', 'حولي', 'Rumaithiya', 'الرميثية', 4)
+) as a(zone_name, city_en, city_ar, name_en, name_ar, sort_order) on a.zone_name = z.name_en;

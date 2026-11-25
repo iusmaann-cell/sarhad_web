@@ -2,13 +2,11 @@
 
 import {
   amountToMinimum,
+  areaCheckoutSchema,
   cartSubtotal,
-  checkoutSchema,
   fieldErrors,
   formatPrice,
-  type DeliveryMatch,
   type LngLat,
-  type OrderType,
   type Tables,
 } from "@sarhad/core";
 import { localized, type Locale } from "@sarhad/i18n";
@@ -20,23 +18,22 @@ import {
   CardHeader,
   CardTitle,
   Checkbox,
-  cn,
   Field,
   Input,
   Textarea,
 } from "@sarhad/ui";
-import { Banknote, Bike, CreditCard, LocateFixed, Store, Tag, X } from "lucide-react";
+import { Banknote, Check, CreditCard, LocateFixed, Tag, X } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useRef, useState, useTransition } from "react";
 
 import { placeOrder, quotePromo } from "@/app/[locale]/checkout/actions";
 import { payOrder } from "@/app/[locale]/orders/actions";
-import { checkDelivery } from "@/app/[locale]/delivery/actions";
 import { useCart } from "@/components/cart/cart-provider";
 import { useFreshCart } from "@/components/cart/use-fresh-cart";
 import { PinMap } from "@/components/delivery/pin-map";
+import { OrderStartCard } from "@/components/order-start/order-chip";
+import { useOrderStart } from "@/components/order-start/order-start-provider";
 import { Link, useRouter } from "@/i18n/navigation";
-import type { PublicZone } from "@/lib/delivery";
 
 type CheckoutBranch = {
   id: string;
@@ -70,22 +67,13 @@ const EMPTY_ADDRESS: Address = {
   notes: "",
 };
 
-type ZoneCheck =
-  | { status: "none" }
-  | { status: "checking" }
-  | { status: "ok"; match: DeliveryMatch }
-  | { status: "other"; match: DeliveryMatch }
-  | { status: "outside" };
-
 export function CheckoutForm({
   branches,
-  zones,
   profile,
   addresses,
   providers,
 }: {
   branches: CheckoutBranch[];
-  zones: PublicZone[];
   profile: { name: string; phone: string };
   addresses: Tables<"customer_addresses">[];
   /** Active online payment options (cash is always offered). */
@@ -97,19 +85,27 @@ export function CheckoutForm({
   const locale = useLocale() as Locale;
   const router = useRouter();
   const { clear } = useCart();
+  const { start } = useOrderStart();
   const { cart, ready, checked, removed } = useFreshCart();
   const branch = branches.find((b) => b.id === cart.branchId) ?? null;
+  // The visitor's delivery area (or pickup branch) was chosen up front.
+  const area = start?.type === "delivery" ? start.area : null;
 
   const [clientRef] = useState(() => crypto.randomUUID());
-  const [type, setType] = useState<OrderType>("delivery");
   const [name, setName] = useState(profile.name);
   const [phone, setPhone] = useState(profile.phone);
   const [notes, setNotes] = useState("");
-  const [savedId, setSavedId] = useState<string | null>(addresses[0]?.id ?? null);
+  // Saved addresses in the chosen area only: the area decides the branch and fee.
+  const sameArea = (a: { area: string }) =>
+    !!area &&
+    [area.name_en, area.name_ar].some(
+      (n) => n.trim().toLowerCase() === a.area.trim().toLowerCase(),
+    );
+  const areaAddresses = addresses.filter(sameArea);
+  const [savedId, setSavedId] = useState<string | null>(areaAddresses[0]?.id ?? null);
   const [address, setAddress] = useState<Address>(EMPTY_ADDRESS);
   const [pin, setPin] = useState<LngLat | null>(null);
   const [saveAddress, setSaveAddress] = useState(true);
-  const [zone, setZone] = useState<ZoneCheck>({ status: "none" });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [serverError, setServerError] = useState<string | null>(null);
   const [locating, setLocating] = useState(false);
@@ -125,40 +121,11 @@ export function CheckoutForm({
   const [checkingPromo, startPromo] = useTransition();
   const [pending, startTransition] = useTransition();
 
-  // Delivery or pickup, whichever the branch offers.
-  const effectiveType: OrderType =
-    branch && !branch.accepts_delivery
-      ? "pickup"
-      : branch && !branch.accepts_pickup
-        ? "delivery"
-        : type;
-
-  const saved = addresses.find((a) => a.id === savedId) ?? null;
-  const point: LngLat | null = saved ? [saved.longitude, saved.latitude] : pin;
-
-  // Check the delivery area whenever the pin moves.
-  const pointKey = point ? point.join(",") : "";
-  useEffect(() => {
-    if (!point || effectiveType !== "delivery" || !branch) return;
-    let cancelled = false;
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setZone({ status: "checking" });
-    checkDelivery({ lat: point[1], lng: point[0] }).then((res) => {
-      if (cancelled) return;
-      if (!res.ok || res.matches.length === 0) return setZone({ status: "outside" });
-      const mine = res.matches.find((m) => m.branch_id === branch.id);
-      setZone(mine ? { status: "ok", match: mine } : { status: "other", match: res.matches[0]! });
-    });
-    return () => {
-      cancelled = true;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pointKey, effectiveType, branch?.id]);
+  const effectiveType = start?.type ?? null;
+  const saved = areaAddresses.find((a) => a.id === savedId) ?? null;
 
   // A promo's discount depends on the subtotal and delivery fee: check it again when they change.
-  const quoteKey = `${cart.branchId}:${cartSubtotal(cart)}:${
-    effectiveType === "delivery" && zone.status === "ok" ? zone.match.fee_fils : 0
-  }`;
+  const quoteKey = `${cart.branchId}:${cartSubtotal(cart)}:${area ? area.fee_fils : 0}`;
   const lastQuoteKey = useRef(quoteKey);
   useEffect(() => {
     if (lastQuoteKey.current === quoteKey) return;
@@ -181,6 +148,15 @@ export function CheckoutForm({
 
   if (!ready || !checked) return <p className="text-muted-foreground">…</p>;
 
+  if (!start) {
+    return (
+      <div className="grid justify-items-start gap-4 rounded-[1.25rem] border border-border bg-card p-6">
+        <OrderStartCard />
+        <p className="text-muted-foreground">{t("chooseFirst")}</p>
+      </div>
+    );
+  }
+
   if (cart.lines.length === 0 || !branch) {
     return (
       <Card>
@@ -197,17 +173,11 @@ export function CheckoutForm({
 
   const branchName = localized(branch, "name", locale);
   const subtotal = cartSubtotal(cart);
-  const fee = effectiveType === "delivery" && zone.status === "ok" ? zone.match.fee_fils : 0;
-  const shortBy =
-    effectiveType === "delivery" && zone.status === "ok"
-      ? amountToMinimum(subtotal, zone.match.min_order_fils)
-      : 0;
+  const fee = area ? area.fee_fils : 0;
+  const shortBy = area ? amountToMinimum(subtotal, area.min_order_fils) : 0;
   const discount = promo ? Math.min(promo.discountFils, subtotal + fee) : 0;
   const total = subtotal + fee - discount;
-  const canSubmit =
-    branch.open &&
-    !pending &&
-    (effectiveType === "pickup" || !point || (zone.status === "ok" && shortBy === 0));
+  const canSubmit = branch.open && !pending && shortBy === 0;
 
   const err = (path: string) =>
     errors[path] ? tv(errors[path] as Parameters<typeof tv>[0]) : undefined;
@@ -265,7 +235,7 @@ export function CheckoutForm({
     setServerError(null);
     const addr = saved
       ? {
-          area: saved.area,
+          area: area?.name_en ?? saved.area,
           block: saved.block,
           street: saved.street,
           avenue: saved.avenue ?? undefined,
@@ -276,12 +246,11 @@ export function CheckoutForm({
           latitude: saved.latitude,
           longitude: saved.longitude,
         }
-      : { ...address, latitude: pin?.[1], longitude: pin?.[0] };
-    const checkout =
-      effectiveType === "delivery"
-        ? { type: "delivery" as const, name, phone, notes, address: addr }
-        : { type: "pickup" as const, name, phone, notes };
-    const parsed = checkoutSchema.safeParse(checkout);
+      : { ...address, area: area?.name_en ?? "", latitude: pin?.[1], longitude: pin?.[0] };
+    const checkout = area
+      ? { type: "delivery" as const, areaId: area.area_id, name, phone, notes, address: addr }
+      : { type: "pickup" as const, name, phone, notes };
+    const parsed = areaCheckoutSchema.safeParse(checkout);
     if (!parsed.success) {
       setErrors(fieldErrors(parsed.error));
       return;
@@ -292,7 +261,7 @@ export function CheckoutForm({
         clientRef,
         cart,
         checkout,
-        saveAddress: !saved && saveAddress,
+        saveAddress: !saved && saveAddress && pin !== null,
         promoCode: promo?.code ?? null,
         providerId,
       });
@@ -313,21 +282,6 @@ export function CheckoutForm({
     });
   }
 
-  const typeButton = (value: OrderType, label: string, Icon: typeof Bike, enabled: boolean) => (
-    <button
-      type="button"
-      disabled={!enabled}
-      onClick={() => setType(value)}
-      aria-pressed={effectiveType === value}
-      className={cn(
-        "flex flex-1 items-center justify-center gap-2 rounded-lg border px-4 py-3 font-medium disabled:opacity-40",
-        effectiveType === value ? "border-primary bg-secondary text-primary" : "hover:bg-muted",
-      )}
-    >
-      <Icon className="size-5" aria-hidden /> {label}
-    </button>
-  );
-
   return (
     <form onSubmit={submit} noValidate className="grid gap-6 lg:grid-cols-[1fr_340px]">
       <div className="grid gap-6">
@@ -336,22 +290,7 @@ export function CheckoutForm({
         ) : null}
         {removed > 0 ? <Alert>{tc("removedItems", { count: removed })}</Alert> : null}
 
-        <Card>
-          <CardHeader>
-            <CardTitle>{t("howToGet")}</CardTitle>
-          </CardHeader>
-          <CardContent className="grid gap-3">
-            <div className="flex gap-3">
-              {typeButton("delivery", t("delivery"), Bike, branch.accepts_delivery)}
-              {typeButton("pickup", t("pickup"), Store, branch.accepts_pickup)}
-            </div>
-            {effectiveType === "pickup" ? (
-              <p className="text-sm text-muted-foreground">
-                {t("pickupFrom", { branch: branchName })}
-              </p>
-            ) : null}
-          </CardContent>
-        </Card>
+        <OrderStartCard />
 
         {effectiveType === "delivery" ? (
           <Card>
@@ -359,20 +298,20 @@ export function CheckoutForm({
               <CardTitle>{t("address")}</CardTitle>
             </CardHeader>
             <CardContent className="grid gap-4">
-              {addresses.length > 0 ? (
+              {areaAddresses.length > 0 ? (
                 <fieldset className="grid gap-2">
                   <legend className="mb-1 text-sm font-medium">{t("savedAddresses")}</legend>
-                  {addresses.map((a) => (
+                  {areaAddresses.map((a) => (
                     <label
                       key={a.id}
-                      className="flex cursor-pointer items-start gap-3 rounded-lg border p-3 has-[:checked]:border-primary has-[:checked]:bg-secondary"
+                      className="flex cursor-pointer items-start gap-3 rounded-lg border p-3 has-[:checked]:border-primary has-[:checked]:bg-primary/10"
                     >
                       <input
                         type="radio"
                         name="address"
                         checked={savedId === a.id}
                         onChange={() => setSavedId(a.id)}
-                        className="mt-1 accent-[var(--color-primary)]"
+                        className="mt-1 accent-[var(--brand-orange)]"
                       />
                       <span className="text-sm">
                         {a.area}, {t("block")} {a.block}, {t("street")} {a.street}, {t("building")}{" "}
@@ -380,13 +319,13 @@ export function CheckoutForm({
                       </span>
                     </label>
                   ))}
-                  <label className="flex cursor-pointer items-center gap-3 rounded-lg border p-3 has-[:checked]:border-primary has-[:checked]:bg-secondary">
+                  <label className="flex cursor-pointer items-center gap-3 rounded-lg border p-3 has-[:checked]:border-primary has-[:checked]:bg-primary/10">
                     <input
                       type="radio"
                       name="address"
                       checked={savedId === null}
                       onChange={() => setSavedId(null)}
-                      className="accent-[var(--color-primary)]"
+                      className="accent-[var(--brand-orange)]"
                     />
                     <span className="text-sm font-medium">{t("newAddress")}</span>
                   </label>
@@ -396,12 +335,16 @@ export function CheckoutForm({
               {!saved ? (
                 <>
                   <div className="grid gap-4 sm:grid-cols-2">
-                    <Field id="a-area" label={t("area")} error={err("address.area")}>
+                    <Field id="a-area" label={t("areaLocked")} className="sm:col-span-2">
                       <Input
                         id="a-area"
-                        value={address.area}
-                        onChange={setA("area")}
-                        autoComplete="address-level2"
+                        value={
+                          area
+                            ? `${localized(area, "city", locale)} · ${localized(area, "name", locale)}`
+                            : ""
+                        }
+                        readOnly
+                        className="text-muted-foreground"
                       />
                     </Field>
                     <Field id="a-block" label={t("block")} error={err("address.block")}>
@@ -439,7 +382,7 @@ export function CheckoutForm({
                   </div>
                   <div className="grid gap-2">
                     <div className="flex flex-wrap items-center justify-between gap-2">
-                      <p className="font-medium">{t("pinTitle")}</p>
+                      <p className="font-medium">{t("pinOptional")}</p>
                       <Button
                         type="button"
                         variant="outline"
@@ -450,12 +393,8 @@ export function CheckoutForm({
                         <LocateFixed /> {t("useMyLocation")}
                       </Button>
                     </div>
-                    <p className="text-sm text-muted-foreground">{t("pinHint")}</p>
-                    <PinMap
-                      value={pin}
-                      onChange={movePin}
-                      zones={zones.filter((z) => z.branch_id === branch.id)}
-                    />
+                    <p className="text-sm text-muted-foreground">{t("pinOptionalHint")}</p>
+                    <PinMap value={pin} onChange={movePin} className="h-[240px]" />
                     {err("address.latitude") ? (
                       <p className="text-sm text-destructive">{err("address.latitude")}</p>
                     ) : null}
@@ -468,25 +407,18 @@ export function CheckoutForm({
                 </>
               ) : null}
 
-              <div aria-live="polite" data-testid="zone-status">
-                {zone.status === "ok" ? (
-                  <p className="text-sm font-medium text-emerald-700">
-                    {t("zoneOk", {
-                      zone: locale === "ar" ? zone.match.zone_name_ar : zone.match.zone_name_en,
-                      minutes: zone.match.eta_minutes,
-                    })}
-                  </p>
-                ) : zone.status === "outside" ? (
-                  <p className="text-sm font-medium text-destructive">{t("zoneOutside")}</p>
-                ) : zone.status === "other" ? (
-                  <p className="text-sm font-medium text-destructive">
-                    {t("zoneOtherBranch", {
-                      branch:
-                        locale === "ar" ? zone.match.branch_name_ar : zone.match.branch_name_en,
-                    })}
-                  </p>
-                ) : null}
-              </div>
+              {area ? (
+                <p
+                  className="flex items-center gap-2 rounded-xl bg-success/10 px-3 py-2.5 text-sm font-semibold text-success"
+                  data-testid="zone-status"
+                >
+                  <Check className="size-4 shrink-0" aria-hidden />
+                  {t("areaZoneInfo", {
+                    fee: area.fee_fils === 0 ? t("free") : formatPrice(area.fee_fils, locale),
+                    minutes: area.eta_minutes,
+                  })}
+                </p>
+              ) : null}
             </CardContent>
           </Card>
         ) : null}
@@ -549,14 +481,14 @@ export function CheckoutForm({
               ].map((o) => (
                 <label
                   key={o.id ?? "cash"}
-                  className="flex cursor-pointer items-center gap-3 rounded-lg border p-3 font-medium has-[:checked]:border-primary has-[:checked]:bg-secondary"
+                  className="flex cursor-pointer items-center gap-3 rounded-lg border p-3 font-medium has-[:checked]:border-primary has-[:checked]:bg-primary/10"
                 >
                   <input
                     type="radio"
                     name="payment"
                     checked={providerId === o.id}
                     onChange={() => setProviderId(o.id)}
-                    className="accent-[var(--color-primary)]"
+                    className="accent-[var(--brand-orange)]"
                   />
                   <o.Icon className="size-5 text-primary" aria-hidden /> {o.label}
                 </label>
@@ -601,16 +533,12 @@ export function CheckoutForm({
                 <div className="flex justify-between">
                   <span>{t("deliveryFee")}</span>
                   <span className="tabular-nums">
-                    {zone.status === "ok"
-                      ? fee === 0
-                        ? t("free")
-                        : formatPrice(fee, locale)
-                      : "-"}
+                    {fee === 0 ? t("free") : formatPrice(fee, locale)}
                   </span>
                 </div>
               ) : null}
               {promo ? (
-                <div className="flex justify-between text-emerald-700" data-testid="discount">
+                <div className="flex justify-between text-success" data-testid="discount">
                   <span>
                     {t("discount")} ({promo.code})
                   </span>
@@ -626,7 +554,7 @@ export function CheckoutForm({
             </div>
             <div className="grid gap-2 border-t pt-3">
               {promo ? (
-                <div className="flex items-center justify-between gap-2 rounded-lg border border-emerald-600/40 bg-emerald-50 p-2 text-emerald-800">
+                <div className="flex items-center justify-between gap-2 rounded-xl border border-success/40 bg-success/10 p-2 text-success">
                   <span className="flex items-center gap-2">
                     <Tag className="size-4" aria-hidden />
                     {t("promoApplied", {
@@ -635,7 +563,7 @@ export function CheckoutForm({
                   </span>
                   <button
                     type="button"
-                    className="rounded p-1 hover:bg-emerald-100"
+                    className="rounded-full p-1 hover:bg-success/20"
                     aria-label={t("removePromo")}
                     onClick={() => {
                       setPromo(null);
@@ -691,13 +619,18 @@ export function CheckoutForm({
                 {t(`errors.${serverError}` as Parameters<typeof t>[0])}
               </Alert>
             ) : null}
-            <Button type="submit" size="lg" disabled={!canSubmit} data-testid="place-order">
+            <button
+              type="submit"
+              disabled={!canSubmit}
+              data-testid="place-order"
+              className="btn-brand h-14 px-4 text-base disabled:opacity-40"
+            >
               {pending
                 ? t("placing")
                 : providerId
                   ? t("placeAndPay", { total: formatPrice(total, locale) })
                   : t("placeOrder", { total: formatPrice(total, locale) })}
-            </Button>
+            </button>
           </CardContent>
         </Card>
       </div>

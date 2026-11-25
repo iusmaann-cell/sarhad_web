@@ -1,6 +1,6 @@
 "use client";
 
-import { toZoneArea, ZONE_COLORS, type LngLat } from "@sarhad/core";
+import { toZoneArea, ZONE_COLORS, type LngLat, type ZoneAreaName } from "@sarhad/core";
 import { Button, Card, CardContent, Checkbox, Field, Input, cn } from "@sarhad/ui";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
@@ -22,7 +22,10 @@ export type ZoneValues = {
   color: string;
   isActive: boolean;
   polygons: LngLat[][][];
+  areas: ZoneAreaName[];
 };
+
+const EMPTY_AREA: ZoneAreaName = { cityEn: "", cityAr: "", nameEn: "", nameAr: "" };
 
 type Props = {
   id: string | null;
@@ -127,6 +130,8 @@ export function ZoneForm({ id, initial, otherZones, center, pin }: Props) {
         </CardContent>
       </Card>
 
+      <AreaList areas={v.areas} onChange={(areas) => setV((p) => ({ ...p, areas }))} err={err} />
+
       <Card>
         <CardContent className="grid gap-2 pt-6">
           <ZoneMap
@@ -167,5 +172,89 @@ export function ZoneForm({ id, initial, otherZones, center, pin }: Props) {
         ) : null}
       </div>
     </form>
+  );
+}
+
+type AreaListProps = {
+  areas: ZoneAreaName[];
+  onChange: (areas: ZoneAreaName[]) => void;
+  err: (key: string) => string | undefined;
+};
+
+/** The named city and area lists customers choose from on the website. */
+function AreaList({ areas, onChange, err }: AreaListProps) {
+  const t = useTranslations("admin");
+  const update = (i: number, k: keyof ZoneAreaName, value: string) =>
+    onChange(areas.map((a, j) => (j === i ? { ...a, [k]: value } : a)));
+  // Start a new row in the same city as the last one, since areas come in groups.
+  const add = () => {
+    const last = areas[areas.length - 1];
+    onChange([
+      ...areas,
+      last ? { ...EMPTY_AREA, cityEn: last.cityEn, cityAr: last.cityAr } : EMPTY_AREA,
+    ]);
+  };
+  const fields: { k: keyof ZoneAreaName; label: string; dir: "ltr" | "rtl" }[] = [
+    { k: "cityEn", label: t("areaCityEn"), dir: "ltr" },
+    { k: "cityAr", label: t("areaCityAr"), dir: "rtl" },
+    { k: "nameEn", label: t("areaNameEn"), dir: "ltr" },
+    { k: "nameAr", label: t("areaNameAr"), dir: "rtl" },
+  ];
+
+  return (
+    <Card>
+      <CardContent className="grid gap-4 pt-6">
+        <div>
+          <h2 className="text-lg font-semibold">{t("zoneAreasTitle")}</h2>
+          <p className="text-sm text-muted-foreground">{t("zoneAreasHelp")}</p>
+        </div>
+        {areas.length === 0 ? (
+          <p className="text-sm text-muted-foreground">{t("noAreas")}</p>
+        ) : (
+          <ol className="grid gap-3">
+            {areas.map((a, i) => (
+              <li
+                key={i}
+                className="grid items-end gap-3 rounded-lg border p-3 sm:grid-cols-2 lg:grid-cols-[repeat(4,minmax(0,1fr))_auto]"
+              >
+                {fields.map((f) => (
+                  <Field
+                    key={f.k}
+                    id={`area-${i}-${f.k}`}
+                    label={f.label}
+                    error={err(`areas.${i}.${f.k}`)}
+                  >
+                    <Input
+                      id={`area-${i}-${f.k}`}
+                      dir={f.dir}
+                      value={a[f.k]}
+                      onChange={(e) => update(i, f.k, e.target.value)}
+                    />
+                  </Field>
+                ))}
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => onChange(areas.filter((_, j) => j !== i))}
+                  aria-label={t("removeArea", { n: i + 1 })}
+                >
+                  ✕
+                </Button>
+              </li>
+            ))}
+          </ol>
+        )}
+        {err("areas") ? (
+          <p className="text-sm font-medium text-destructive" role="alert">
+            {err("areas")}
+          </p>
+        ) : null}
+        <div>
+          <Button type="button" variant="outline" onClick={add}>
+            + {t("addArea")}
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
   );
 }

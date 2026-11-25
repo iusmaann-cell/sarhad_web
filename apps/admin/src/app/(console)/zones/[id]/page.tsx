@@ -5,7 +5,7 @@ import { notFound, redirect } from "next/navigation";
 
 import { requireStaff } from "@/lib/staff";
 
-import { loadZone } from "../load";
+import { loadZone, zoneAreaValues } from "../load";
 import { editorContext } from "../page-data";
 import { ZoneForm } from "../zone-form";
 
@@ -41,6 +41,7 @@ export default async function EditZonePage({ params }: PageProps<"/zones/[id]">)
           color: zone.color,
           isActive: zone.is_active,
           polygons: fromZoneArea(zone.area_geojson),
+          areas: zoneAreaValues(zone),
         }}
       />
     </div>

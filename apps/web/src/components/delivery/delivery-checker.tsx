@@ -189,7 +189,7 @@ export function DeliveryChecker({ zones }: { zones: PublicZone[] }) {
           className="h-[420px] w-full overflow-hidden rounded-xl border bg-muted lg:h-[520px]"
         />
         {locationError ? <p className="text-sm text-destructive">{t("locationDenied")}</p> : null}
-        {fallback ? <p className="text-sm text-amber-700">{t("mapFallback")}</p> : null}
+        {fallback ? <p className="text-sm text-brand-amber">{t("mapFallback")}</p> : null}
       </div>
 
       <div aria-live="polite" data-testid="delivery-result">
@@ -200,10 +200,10 @@ export function DeliveryChecker({ zones }: { zones: PublicZone[] }) {
         ) : result.status === "error" ? (
           <Alert variant="destructive">{t("error")}</Alert>
         ) : result.status === "done" && match ? (
-          <Card className="border-emerald-300">
+          <Card className="border-success/50">
             <CardContent className="grid gap-4 pt-6">
               <div>
-                <p className="text-lg font-bold text-emerald-800">
+                <p className="text-lg font-bold text-success">
                   {t("yes", {
                     zone: locale === "ar" ? match.zone_name_ar : match.zone_name_en,
                   })}
@@ -250,7 +250,7 @@ export function DeliveryChecker({ zones }: { zones: PublicZone[] }) {
             </CardContent>
           </Card>
         ) : result.status === "done" ? (
-          <Card className="border-amber-300">
+          <Card className="border-brand-amber/50">
             <CardContent className="grid gap-3 pt-6">
               <p className="text-lg font-bold">{t("no")}</p>
               <p className="text-sm text-muted-foreground">{t("noBody")}</p>

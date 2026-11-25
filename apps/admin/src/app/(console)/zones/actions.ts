@@ -27,6 +27,12 @@ export async function saveZone(id: string | null, input: unknown): Promise<Actio
       eta_minutes: z.etaMinutes,
       color: z.color,
       is_active: z.isActive,
+      areas: z.areas.map((a) => ({
+        city_en: a.cityEn,
+        city_ar: a.cityAr,
+        name_en: a.nameEn,
+        name_ar: a.nameAr,
+      })),
     },
   });
   if (error) {

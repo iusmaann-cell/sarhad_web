@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 
 import { DeleteAccount } from "@/components/account/delete-account";
+import { SignOutButton } from "@/components/sign-out-button";
 import { Link, redirect } from "@/i18n/navigation";
 import { createClient } from "@/lib/supabase/server";
 
@@ -63,10 +64,11 @@ export default async function AccountPage({ params }: PageProps<"/[locale]/accou
         <CardHeader>
           <CardTitle>{t("orders")}</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="flex flex-wrap gap-3">
           <Button asChild variant="outline">
             <Link href="/orders">{tn("orders")}</Link>
           </Button>
+          <SignOutButton label={tn("signOut")} />
         </CardContent>
       </Card>
       <Card>

@@ -109,7 +109,12 @@ export default async function ZonesPage({ searchParams }: PageProps<"/zones">) {
                         style={{ backgroundColor: z.color }}
                         aria-hidden
                       />
-                      {localized(z, "name", locale)}
+                      <span>
+                        {localized(z, "name", locale)}
+                        <span className="block text-xs font-normal text-muted-foreground">
+                          {t("areaCount", { count: z.delivery_areas?.length ?? 0 })}
+                        </span>
+                      </span>
                     </span>
                   </td>
                   <td className="p-3">

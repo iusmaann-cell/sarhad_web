@@ -14,8 +14,8 @@ export default async function CartPage({ params }: PageProps<"/[locale]/cart">) 
   setRequestLocale(locale);
   const t = await getTranslations("cart");
   return (
-    <div className="mx-auto grid max-w-3xl gap-6 px-4 py-8">
-      <h1 className="text-3xl font-bold">{t("title")}</h1>
+    <div className="mx-auto grid max-w-5xl gap-6 px-4 py-8">
+      <h1 className="text-3xl font-extrabold">{t("title")}</h1>
       <CartView />
     </div>
   );

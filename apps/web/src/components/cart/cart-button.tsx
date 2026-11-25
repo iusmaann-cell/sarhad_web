@@ -15,7 +15,7 @@ export function CartButton() {
   return (
     <Link
       href="/cart"
-      className="relative inline-flex size-9 items-center justify-center rounded-md hover:bg-muted"
+      className="relative inline-flex size-11 items-center justify-center rounded-full hover:bg-secondary"
       aria-label={`${t("cart")} (${count})`}
       data-testid="cart-button"
     >
