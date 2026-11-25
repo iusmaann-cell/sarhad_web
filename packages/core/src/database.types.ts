@@ -176,7 +176,7 @@ export type Database = {
           client_ref: string;
           completed_at: string | null;
           created_at: string;
-          customer_id: string;
+          customer_id: string | null;
           customer_name: string;
           customer_phone: string;
           delivery_fee_fils: number;
@@ -345,7 +345,7 @@ export type Database = {
       promo_redemptions: {
         Row: {
           created_at: string;
-          customer_id: string;
+          customer_id: string | null;
           discount_fils: number;
           id: string;
           order_id: string;
@@ -649,6 +649,7 @@ export type Database = {
         Args: { p_payment_id: string; p_status: string; p_provider_ref?: string; p_raw?: Json };
         Returns: string;
       };
+      delete_my_account: { Args: Record<PropertyKey, never>; Returns: undefined };
       expire_unpaid_orders: { Args: Record<PropertyKey, never>; Returns: number };
       promo_uses: { Args: { p_promo_id: string; p_customer_id?: string }; Returns: number };
       promo_quote: {

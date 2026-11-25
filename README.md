@@ -84,6 +84,15 @@ Hosting is decided at the end of the project, so nothing here is tied to a host.
 
 Going live with a gateway: sign a merchant agreement with MyFatoorah or Tap, paste the **sandbox** key in Settings, place a test order with their test cards, then switch to the live key and turn on _Live mode_. The website server needs `SUPABASE_SECRET_KEY` (Supabase: Project settings > API > secret/service role key) to talk to gateways. Keep it secret: never put it in the mobile app or any `NEXT_PUBLIC_` variable.
 
+## Phase 8 (Launch) delivers
+
+- **Delete my account** on the website and in the app (required by Apple and Google). Login, profile and saved addresses are deleted; past orders stay for the restaurant's records with the name, phone and street address removed. Not allowed while an order is in progress or for staff accounts.
+- **Privacy policy** (`/privacy`) and **terms of use** (`/terms`) in Arabic and English, linked from the footer and the app. Have them reviewed by a lawyer before launch.
+- **Production hardening**: security headers on both apps, back office hidden from search engines, `robots.txt`, `sitemap.xml` and Restaurant data for Google on the website, and `/api/health` on both apps for uptime checks.
+- **Deployment**: one `Dockerfile` for the website and the back office (`--build-arg APP=web|admin`), standalone Node output that runs on any host. See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
+- **App stores**: version 1.0.0, EAS build profiles (`apps/mobile/eas.json`), export-compliance flag, and the store listing text and privacy answers in [docs/STORE.md](docs/STORE.md).
+- **Tests**: 10 more database tests for account deletion.
+
 ## Run it locally
 
 Requirements: Node 22, pnpm 10, Docker (for the local Supabase).
@@ -122,13 +131,9 @@ pnpm db:test     # database security tests (needs pnpm db:start)
 pnpm build
 ```
 
-## Going live with Supabase (when ready)
+## Going live
 
-1. Create a free project at supabase.com (region closest to Kuwait).
-2. `npx supabase link --project-ref <ref>` then `npx supabase db push` to apply migrations. Do not run `seed.sql` in production.
-3. In Auth settings: set Site URL to the website, add the website and back office `/auth/confirm` URLs to Redirect URLs, paste the two templates from `supabase/templates/`, set minimum password length 8 with letters and digits, and connect an email sender (SMTP) so emails are not rate limited.
-4. Sign up on the website with the owner's email, confirm it, then run in the SQL editor: `select public.bootstrap_owner('owner@example.com');`
-5. Put the project URL and publishable key in each app's environment.
+Step by step in [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) (Supabase, hosting, domains, first owner, payments, backups) and [docs/STORE.md](docs/STORE.md) (App Store and Google Play).
 
 ## Roadmap
 
@@ -139,4 +144,4 @@ pnpm build
 5. Mobile apps (ordering done; store release in Launch)
 6. Order operations (done)
 7. Payments and promotions (done)
-8. Launch
+8. Launch (code done; hosting, domains and store submission need the owner's accounts)
