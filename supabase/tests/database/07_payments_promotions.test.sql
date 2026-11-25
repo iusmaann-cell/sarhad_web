@@ -60,7 +60,9 @@ reset role;
 -- Customer
 set local role authenticated;
 set local request.jwt.claims = '{"sub":"a3000000-0000-4000-8000-000000000001","role":"authenticated"}';
-select is((select count(*)::int from public.payment_providers), 1, 'customers see only active payment options');
+select is(
+  (select array_agg(id::text) from public.payment_providers where id::text like 'e3000000-%'),
+  array['e3000000-0000-4000-8000-000000000001'], 'customers see only active payment options');
 select throws_ok(
   $$select public.set_payment_provider_key('e3000000-0000-4000-8000-000000000001', 'x')$$,
   '42501', null, 'customers cannot set keys');
