@@ -7,6 +7,8 @@ import { CheckoutForm } from "@/components/checkout/checkout-form";
 import { redirect } from "@/i18n/navigation";
 import { getDeliveryAreas } from "@/lib/delivery";
 import { getBranches } from "@/lib/menu";
+import { allowTestGateway } from "@/lib/payments/gateways";
+import { hasAdminKey } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
 export async function generateMetadata({
@@ -26,18 +28,28 @@ export default async function CheckoutPage({ params }: PageProps<"/[locale]/chec
   const { data: auth } = await supabase.auth.getUser();
   if (!auth.user) redirect({ href: "/sign-in?next=/checkout", locale });
 
-  const [t, branches, zones, { data: profile }, { data: addresses }] = await Promise.all([
-    getTranslations("checkout"),
-    getBranches(),
-    getDeliveryAreas(),
-    supabase.from("profiles").select("full_name, phone").eq("id", auth.user!.id).maybeSingle(),
-    supabase
-      .from("customer_addresses")
-      .select("*")
-      .order("is_default", { ascending: false })
-      .order("created_at", { ascending: false })
-      .limit(10),
-  ]);
+  const [t, branches, zones, { data: profile }, { data: addresses }, { data: providers }] =
+    await Promise.all([
+      getTranslations("checkout"),
+      getBranches(),
+      getDeliveryAreas(),
+      supabase.from("profiles").select("full_name, phone").eq("id", auth.user!.id).maybeSingle(),
+      supabase
+        .from("customer_addresses")
+        .select("*")
+        .order("is_default", { ascending: false })
+        .order("created_at", { ascending: false })
+        .limit(10),
+      supabase
+        .from("payment_providers")
+        .select("id, kind, name_en, name_ar")
+        .eq("is_active", true)
+        .order("sort_order"),
+    ]);
+  // The test gateway is offered only where it is allowed (never in production).
+  const online = hasAdminKey()
+    ? (providers ?? []).filter((p) => p.kind !== "test" || allowTestGateway())
+    : [];
   const now = new Date();
 
   return (
@@ -56,6 +68,7 @@ export default async function CheckoutPage({ params }: PageProps<"/[locale]/chec
         zones={zones}
         profile={{ name: profile?.full_name ?? "", phone: profile?.phone ?? "" }}
         addresses={addresses ?? []}
+        providers={online.map(({ id, name_en, name_ar }) => ({ id, name_en, name_ar }))}
       />
     </div>
   );

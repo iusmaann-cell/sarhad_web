@@ -17,6 +17,11 @@ export const ORDER_STATUSES: OrderStatus[] = [
   "cancelled",
 ];
 
+/** An online order the gateway has not confirmed yet: hidden from the kitchen. */
+export function awaitingPayment(o: { payment_method: string; payment_status: string }): boolean {
+  return o.payment_method === "online" && o.payment_status === "unpaid";
+}
+
 /** Statuses a customer sees as "in progress". */
 export function isOpenOrder(status: OrderStatus): boolean {
   return status !== "completed" && status !== "cancelled";
@@ -212,6 +217,14 @@ export const ORDER_ERROR_CODES = [
   "address_required",
   "outside_zone",
   "below_minimum",
+  "payment_unavailable",
+  "promo_invalid",
+  "promo_expired",
+  "promo_min_order",
+  "promo_used_up",
+  "promo_already_used",
+  "promo_first_order",
+  "promo_delivery_only",
 ] as const;
 
 export type OrderErrorCode = (typeof ORDER_ERROR_CODES)[number] | "unknown";
@@ -280,7 +293,12 @@ export function minutesSince(iso: string, now: Date = new Date()): number {
 }
 
 /** Error codes from update_order_status(). */
-export const STATUS_ERROR_CODES = ["not_found", "invalid_status", "reason_required"] as const;
+export const STATUS_ERROR_CODES = [
+  "not_found",
+  "invalid_status",
+  "reason_required",
+  "awaiting_payment",
+] as const;
 export type StatusErrorCode = (typeof STATUS_ERROR_CODES)[number];
 
 export function statusErrorCode(message: string | undefined): StatusErrorCode | "unknown" {

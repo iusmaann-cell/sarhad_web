@@ -187,7 +187,9 @@ export type Database = {
           notes: string | null;
           order_number: number;
           payment_method: Database["public"]["Enums"]["payment_method"];
+          payment_provider_id: string | null;
           payment_status: Database["public"]["Enums"]["payment_status"];
+          promo_code: string | null;
           ready_at: string | null;
           status: Database["public"]["Enums"]["order_status"];
           subtotal_fils: number;
@@ -203,6 +205,160 @@ export type Database = {
             columns: ["branch_id"];
             isOneToOne: false;
             referencedRelation: "branches";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      payment_providers: {
+        Row: {
+          created_at: string;
+          id: string;
+          is_active: boolean;
+          is_live: boolean;
+          key_hint: string | null;
+          kind: "test" | "myfatoorah" | "tap";
+          name_ar: string;
+          name_en: string;
+          sort_order: number;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          is_active?: boolean;
+          is_live?: boolean;
+          kind: "test" | "myfatoorah" | "tap";
+          name_ar: string;
+          name_en: string;
+          sort_order?: number;
+        };
+        Update: {
+          is_active?: boolean;
+          is_live?: boolean;
+          kind?: "test" | "myfatoorah" | "tap";
+          name_ar?: string;
+          name_en?: string;
+          sort_order?: number;
+        };
+        Relationships: [];
+      };
+      payment_provider_secrets: {
+        Row: { api_key: string; provider_id: string; updated_at: string };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      payments: {
+        Row: {
+          amount_fils: number;
+          created_at: string;
+          currency: string;
+          id: string;
+          order_id: string;
+          paid_at: string | null;
+          provider_id: string | null;
+          provider_kind: string;
+          provider_ref: string | null;
+          raw: Json;
+          status: "initiated" | "paid" | "failed" | "cancelled";
+          updated_at: string;
+        };
+        Insert: {
+          amount_fils: number;
+          currency?: string;
+          id?: string;
+          order_id: string;
+          provider_id?: string | null;
+          provider_kind: string;
+          provider_ref?: string | null;
+          raw?: Json;
+          status?: "initiated" | "paid" | "failed" | "cancelled";
+        };
+        Update: {
+          provider_ref?: string | null;
+          raw?: Json;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "payments_order_id_fkey";
+            columns: ["order_id"];
+            isOneToOne: false;
+            referencedRelation: "orders";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      promo_codes: {
+        Row: {
+          branch_id: string | null;
+          code: string;
+          created_at: string;
+          ends_at: string | null;
+          first_order_only: boolean;
+          id: string;
+          is_active: boolean;
+          kind: "percent" | "fixed" | "free_delivery";
+          max_discount_fils: number | null;
+          max_uses: number | null;
+          max_uses_per_customer: number | null;
+          min_subtotal_fils: number;
+          name_ar: string;
+          name_en: string;
+          starts_at: string | null;
+          updated_at: string;
+          value: number;
+        };
+        Insert: {
+          branch_id?: string | null;
+          code: string;
+          ends_at?: string | null;
+          first_order_only?: boolean;
+          id?: string;
+          is_active?: boolean;
+          kind: "percent" | "fixed" | "free_delivery";
+          max_discount_fils?: number | null;
+          max_uses?: number | null;
+          max_uses_per_customer?: number | null;
+          min_subtotal_fils?: number;
+          name_ar: string;
+          name_en: string;
+          starts_at?: string | null;
+          value?: number;
+        };
+        Update: {
+          branch_id?: string | null;
+          code?: string;
+          ends_at?: string | null;
+          first_order_only?: boolean;
+          is_active?: boolean;
+          kind?: "percent" | "fixed" | "free_delivery";
+          max_discount_fils?: number | null;
+          max_uses?: number | null;
+          max_uses_per_customer?: number | null;
+          min_subtotal_fils?: number;
+          name_ar?: string;
+          name_en?: string;
+          starts_at?: string | null;
+          value?: number;
+        };
+        Relationships: [];
+      };
+      promo_redemptions: {
+        Row: {
+          created_at: string;
+          customer_id: string;
+          discount_fils: number;
+          id: string;
+          order_id: string;
+          promo_id: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [
+          {
+            foreignKeyName: "promo_redemptions_order_id_fkey";
+            columns: ["order_id"];
+            isOneToOne: true;
+            referencedRelation: "orders";
             referencedColumns: ["id"];
           },
         ];
@@ -485,6 +641,25 @@ export type Database = {
         };
         Returns: Database["public"]["Enums"]["order_status"];
       };
+      set_payment_provider_key: {
+        Args: { p_provider_id: string; p_api_key: string };
+        Returns: undefined;
+      };
+      record_payment_result: {
+        Args: { p_payment_id: string; p_status: string; p_provider_ref?: string; p_raw?: Json };
+        Returns: string;
+      };
+      expire_unpaid_orders: { Args: Record<PropertyKey, never>; Returns: number };
+      promo_uses: { Args: { p_promo_id: string; p_customer_id?: string }; Returns: number };
+      promo_quote: {
+        Args: {
+          p_code: string;
+          p_branch_id: string;
+          p_subtotal_fils: number;
+          p_delivery_fee_fils?: number;
+        };
+        Returns: Json;
+      };
       set_accepting_orders: { Args: { p_branch_id: string; p_accepting: boolean }; Returns: boolean };
       order_stats: {
         Args: { p_branch_id?: string };
@@ -540,7 +715,7 @@ export type Database = {
         | "out_for_delivery"
         | "completed"
         | "cancelled";
-      payment_method: "cash";
+      payment_method: "cash" | "online";
       payment_status: "unpaid" | "paid" | "refunded";
     };
     CompositeTypes: { [_ in never]: never };

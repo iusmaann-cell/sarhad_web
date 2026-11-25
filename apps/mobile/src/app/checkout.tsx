@@ -5,6 +5,7 @@ import {
   checkoutSchema,
   fieldErrors,
   formatPrice,
+  normalizePromoCode,
   orderErrorCode,
   type DeliveryMatch,
   type OrderType,
@@ -21,6 +22,7 @@ import { AppText, Button, Card, Notice, Screen, TextField, Title } from "@/compo
 import { useAuth } from "@/lib/auth";
 import { useCart } from "@/lib/cart";
 import { useFreshCart } from "@/lib/fresh-cart";
+import { loadPaymentOptions, payOnline, type PaymentOption } from "@/lib/payments";
 import { useI18n, type MessageKey } from "@/lib/i18n";
 import { supabase } from "@/lib/supabase";
 import { spacing, useTheme } from "@/lib/theme";
@@ -67,6 +69,16 @@ export default function CheckoutScreen() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [serverError, setServerError] = useState<string | null>(null);
   const [placing, setPlacing] = useState(false);
+  const [options, setOptions] = useState<PaymentOption[]>([]);
+  const [providerId, setProviderId] = useState<string | null>(null);
+  const [promoInput, setPromoInput] = useState("");
+  const [promo, setPromo] = useState<{ code: string; name: string; discount: number } | null>(null);
+  const [promoError, setPromoError] = useState<string | null>(null);
+  const [checkingPromo, setCheckingPromo] = useState(false);
+
+  useEffect(() => {
+    loadPaymentOptions().then(setOptions);
+  }, []);
 
   // Profile and saved addresses.
   useEffect(() => {
@@ -122,6 +134,41 @@ export default function CheckoutScreen() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pinKey, branch?.id, effectiveType]);
 
+  // The discount depends on the subtotal and the delivery fee: check again when they change.
+  const quoteFee = effectiveType === "delivery" && zone.status === "ok" ? zone.match.fee_fils : 0;
+  const quoteSubtotal = cartSubtotal(cart);
+  async function quote(code: string, sub: number, f: number) {
+    if (!branch) return;
+    setCheckingPromo(true);
+    const { data, error } = await supabase.rpc("promo_quote", {
+      p_code: normalizePromoCode(code),
+      p_branch_id: branch.id,
+      p_subtotal_fils: sub,
+      p_delivery_fee_fils: f,
+    });
+    setCheckingPromo(false);
+    if (error || !data) {
+      setPromo(null);
+      setPromoError(orderErrorCode(error?.message));
+      return;
+    }
+    const q = data as { code: string; name_en: string; name_ar: string; discount_fils: number };
+    setPromoError(null);
+    setPromoInput(q.code);
+    setPromo({
+      code: q.code,
+      name: locale === "ar" ? q.name_ar : q.name_en,
+      discount: q.discount_fils,
+    });
+  }
+  const promoCode = promo?.code;
+  useEffect(() => {
+    // Re-check an applied code against the new subtotal and fee (a server call).
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (promoCode) void quote(promoCode, quoteSubtotal, quoteFee);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [quoteSubtotal, quoteFee]);
+
   if (!loading && !session) return <Redirect href="/sign-in" />;
   if (!checked) {
     return (
@@ -145,7 +192,8 @@ export default function CheckoutScreen() {
     effectiveType === "delivery" && zone.status === "ok"
       ? amountToMinimum(subtotal, zone.match.min_order_fils)
       : 0;
-  const total = subtotal + fee;
+  const discount = promo ? Math.min(promo.discount, subtotal + fee) : 0;
+  const total = subtotal + fee - discount;
   const blocked =
     !branch.open ||
     (effectiveType === "delivery" && !!pin && (zone.status !== "ok" || shortBy > 0));
@@ -209,13 +257,18 @@ export default function CheckoutScreen() {
         notes: c.notes ?? null,
         address: c.type === "delivery" ? c.address : null,
         items: cartToOrderItems(cart),
+        promo_code: promo?.code ?? null,
+        payment: providerId ? { method: "online", provider_id: providerId } : { method: "cash" },
       },
     });
     if (error || !data) {
       setPlacing(false);
-      setServerError(orderErrorCode(error?.message));
+      const code = orderErrorCode(error?.message);
+      if (code.startsWith("promo_")) setPromo(null);
+      setServerError(code);
       return;
     }
+    const placed = data as { id: string; payment_method: string };
     if (c.type === "delivery" && !savedAddress) {
       const a = c.address;
       const duplicate = saved.some(
@@ -240,10 +293,13 @@ export default function CheckoutScreen() {
         });
     }
     clear();
-    router.replace({
-      pathname: "/orders/[id]",
-      params: { id: (data as { id: string }).id, placed: "1" },
-    });
+    if (placed.payment_method === "online") {
+      // The order screen shows the result, or "Pay now" if the page was closed.
+      await payOnline(placed.id, locale);
+      router.replace({ pathname: "/orders/[id]", params: { id: placed.id } });
+      return;
+    }
+    router.replace({ pathname: "/orders/[id]", params: { id: placed.id, placed: "1" } });
   }
 
   const choice = (value: OrderType, label: string, enabled: boolean) => (
@@ -430,7 +486,81 @@ export default function CheckoutScreen() {
 
       <Card>
         <AppText style={{ fontWeight: "700" }}>{t("checkout.payment")}</AppText>
-        <AppText>{t("checkout.cash")}</AppText>
+        {[
+          { id: null as string | null, label: t("checkout.cash") },
+          ...options.map((o) => ({
+            id: o.id as string | null,
+            label: localized(o, "name", locale),
+          })),
+        ].map((o) => {
+          const on = providerId === o.id;
+          return (
+            <Pressable
+              key={o.id ?? "cash"}
+              accessibilityRole="radio"
+              accessibilityState={{ checked: on }}
+              onPress={() => setProviderId(o.id)}
+              style={{
+                padding: spacing.md,
+                borderRadius: 10,
+                borderColor: on ? theme.primary : theme.border,
+                borderWidth: on ? 2 : 1,
+                backgroundColor: theme.card,
+              }}
+            >
+              <AppText style={{ fontWeight: on ? "700" : "400" }}>{o.label}</AppText>
+            </Pressable>
+          );
+        })}
+        {providerId ? (
+          <AppText style={{ color: theme.muted }}>{t("checkout.payOnlineHint")}</AppText>
+        ) : null}
+      </Card>
+
+      <Card>
+        <AppText style={{ fontWeight: "700" }}>{t("checkout.promoCode")}</AppText>
+        {promo ? (
+          <View
+            style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}
+          >
+            <AppText style={{ color: theme.success, flex: 1 }}>
+              {t("checkout.promoApplied", { name: promo.name })}
+            </AppText>
+            <Button
+              title={t("checkout.removePromo")}
+              variant="link"
+              onPress={() => {
+                setPromo(null);
+                setPromoInput("");
+              }}
+            />
+          </View>
+        ) : (
+          <>
+            <TextField
+              label={t("checkout.promoCode")}
+              value={promoInput}
+              onChangeText={(v) => {
+                setPromoInput(v);
+                setPromoError(null);
+              }}
+              ltr
+              autoCapitalize="characters"
+            />
+            <Button
+              title={t("checkout.applyPromo")}
+              variant="outline"
+              loading={checkingPromo}
+              disabled={!promoInput.trim()}
+              onPress={() => quote(promoInput, subtotal, fee)}
+            />
+          </>
+        )}
+        {promoError ? (
+          <AppText style={{ color: theme.danger }}>
+            {t(`checkout.errors.${promoError}` as MessageKey)}
+          </AppText>
+        ) : null}
       </Card>
 
       <Card>
@@ -448,6 +578,9 @@ export default function CheckoutScreen() {
                     : "-",
                 ],
               ]
+            : []),
+          ...(promo
+            ? [[`${t("checkout.discount")} (${promo.code})`, `−${formatPrice(discount, locale)}`]]
             : []),
           [t("checkout.total"), formatPrice(total, locale)],
         ].map(([label, value]) => (
@@ -467,7 +600,11 @@ export default function CheckoutScreen() {
         <Notice kind="error">{t(`checkout.errors.${serverError}` as MessageKey)}</Notice>
       ) : null}
       <Button
-        title={t("checkout.placeOrder", { total: formatPrice(total, locale) })}
+        title={
+          providerId
+            ? t("checkout.placeAndPay", { total: formatPrice(total, locale) })
+            : t("checkout.placeOrder", { total: formatPrice(total, locale) })
+        }
         loading={placing}
         disabled={blocked}
         onPress={placeOrder}

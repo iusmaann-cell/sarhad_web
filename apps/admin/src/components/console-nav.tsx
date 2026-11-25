@@ -7,6 +7,7 @@ import {
   MapPinned,
   Settings,
   Store,
+  TicketPercent,
   UtensilsCrossed,
   Users,
 } from "lucide-react";
@@ -16,7 +17,15 @@ import { useTranslations } from "next-intl";
 
 type Item = {
   href: string;
-  key: "dashboard" | "orders" | "menu" | "branches" | "deliveryZones" | "staff" | "settings";
+  key:
+    | "dashboard"
+    | "orders"
+    | "menu"
+    | "branches"
+    | "deliveryZones"
+    | "promotions"
+    | "staff"
+    | "settings";
   icon: typeof Store;
   /** Not built yet: shown greyed out with a "coming soon" badge. */
   soon?: boolean;
@@ -29,8 +38,9 @@ const ITEMS: Item[] = [
   { href: "/menu", key: "menu", icon: UtensilsCrossed },
   { href: "/branches", key: "branches", icon: Store },
   { href: "/zones", key: "deliveryZones", icon: MapPinned },
+  { href: "/promotions", key: "promotions", icon: TicketPercent },
   { href: "/staff", key: "staff", icon: Users },
-  { href: "/settings", key: "settings", icon: Settings, soon: true, adminOnly: true },
+  { href: "/settings", key: "settings", icon: Settings, adminOnly: true },
 ];
 
 export function ConsoleNav({ isAdmin }: { isAdmin: boolean }) {

@@ -1,4 +1,4 @@
-import { formatAddress, formatPrice, isOpenOrder } from "@sarhad/core";
+import { awaitingPayment, formatAddress, formatPrice, isOpenOrder } from "@sarhad/core";
 import { localized, type Locale } from "@sarhad/i18n";
 import { Alert, Badge, Card, CardContent, CardHeader, CardTitle } from "@sarhad/ui";
 import { ArrowLeft, MapPin, Phone } from "lucide-react";
@@ -33,6 +33,7 @@ export default async function OrderDetailPage({ params }: PageProps<"/orders/[id
   if (!order) notFound();
 
   const open = isOpenOrder(order.status);
+  const unpaid = awaitingPayment(order);
   const when = (iso: string) =>
     format.dateTime(new Date(iso), { dateStyle: "medium", timeStyle: "short" });
   const a = order.address;
@@ -64,7 +65,8 @@ export default async function OrderDetailPage({ params }: PageProps<"/orders/[id
         </div>
       </div>
 
-      {open ? (
+      {open && unpaid ? <Alert>{t("awaitingPayment")}</Alert> : null}
+      {open && !unpaid ? (
         <div className="print:hidden">
           <StatusActions
             orderId={order.id}
@@ -80,7 +82,12 @@ export default async function OrderDetailPage({ params }: PageProps<"/orders/[id
         <Alert variant="destructive">
           {order.cancel_reason === "customer"
             ? t("cancelledByCustomer")
-            : t("cancelReasonShown", { reason: order.cancel_reason ?? "-" })}
+            : order.cancel_reason === "payment_timeout"
+              ? t("paymentTimeout")
+              : t("cancelReasonShown", { reason: order.cancel_reason ?? "-" })}
+          {order.payment_method === "online" && order.payment_status === "paid" ? (
+            <span className="mt-1 block font-medium">{t("refundHint")}</span>
+          ) : null}
         </Alert>
       ) : null}
 
@@ -124,12 +131,27 @@ export default async function OrderDetailPage({ params }: PageProps<"/orders/[id
                   <dd className="tabular-nums">{formatPrice(order.delivery_fee_fils, locale)}</dd>
                 </div>
               ) : null}
+              {order.discount_fils > 0 ? (
+                <div className="flex justify-between text-emerald-700">
+                  <dt>
+                    {t("discount")}
+                    {order.promo_code ? ` (${order.promo_code})` : ""}
+                  </dt>
+                  <dd className="tabular-nums">−{formatPrice(order.discount_fils, locale)}</dd>
+                </div>
+              ) : null}
               <div className="flex justify-between text-base font-semibold">
                 <dt>{t("total")}</dt>
                 <dd className="tabular-nums">{formatPrice(order.total_fils, locale)}</dd>
               </div>
               <p className="text-end text-xs text-muted-foreground">
-                {order.payment_status === "paid" ? t("paid") : t("unpaid")}
+                {order.payment_status === "paid"
+                  ? order.payment_method === "online"
+                    ? t("paidOnline")
+                    : t("paid")
+                  : order.payment_method === "online"
+                    ? t("awaitingPayment")
+                    : t("unpaid")}
               </p>
             </dl>
             {order.notes ? (
