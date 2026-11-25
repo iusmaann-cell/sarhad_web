@@ -18,3 +18,5 @@ export * from "./branches";
 export * from "./menu";
 export * from "./zones";
 export * from "./orders";
+export * from "./promotions";
+export * from "./gateways";

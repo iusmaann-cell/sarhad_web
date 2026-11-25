@@ -1,4 +1,5 @@
 import {
+  awaitingPayment,
   formatAddress,
   formatPrice,
   isOpenOrder,
@@ -13,6 +14,7 @@ import { ActivityIndicator, Alert, Linking, View } from "react-native";
 
 import { AppText, Button, Card, Notice, Screen, Title } from "@/components/ui";
 import { useI18n, type MessageKey } from "@/lib/i18n";
+import { payOnline } from "@/lib/payments";
 import { supabase } from "@/lib/supabase";
 import { spacing, useTheme } from "@/lib/theme";
 
@@ -30,6 +32,8 @@ export default function OrderScreen() {
   const theme = useTheme();
   const [order, setOrder] = useState<Order | null>(null);
   const [cancelFailed, setCancelFailed] = useState(false);
+  const [paying, setPaying] = useState(false);
+  const [payError, setPayError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     const { data } = await supabase
@@ -83,15 +87,41 @@ export default function OrderScreen() {
 
   return (
     <Screen>
-      {placed ? <Notice kind="success">{t("orders.thanks")}</Notice> : null}
+      {placed && !awaitingPayment(order) ? (
+        <Notice kind="success">{t("orders.thanks")}</Notice>
+      ) : null}
       <Title>{t("orders.orderNumber", { number: order.order_number })}</Title>
       {order.status === "cancelled" ? (
         <Notice kind="error">
-          {t("orders.cancelled")}
-          {order.cancel_reason && order.cancel_reason !== "customer"
+          {order.cancel_reason === "payment_timeout"
+            ? t("orders.paymentTimeout")
+            : t("orders.cancelled")}
+          {order.cancel_reason &&
+          order.cancel_reason !== "customer" &&
+          order.cancel_reason !== "payment_timeout"
             ? ` ${t("orders.cancelReason", { reason: order.cancel_reason })}`
             : ""}
         </Notice>
+      ) : awaitingPayment(order) && order.status === "pending" ? (
+        <Card>
+          <AppText style={{ fontWeight: "700" }}>{t("orders.paymentWaiting")}</AppText>
+          <AppText style={{ color: theme.muted }}>{t("orders.paymentWaitingHint")}</AppText>
+          <Button
+            title={t("orders.payNow", { total: formatPrice(order.total_fils, locale) })}
+            loading={paying}
+            onPress={async () => {
+              setPaying(true);
+              setPayError(null);
+              const err = await payOnline(order.id, locale);
+              setPaying(false);
+              if (err) setPayError(err);
+              load();
+            }}
+          />
+          {payError ? (
+            <Notice kind="error">{t(`orders.payError.${payError}` as MessageKey)}</Notice>
+          ) : null}
+        </Card>
       ) : (
         <Card>
           {steps.map((s, i) => {
@@ -151,11 +181,28 @@ export default function OrderScreen() {
             </AppText>
           </View>
         ) : null}
+        {order.discount_fils > 0 ? (
+          <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+            <AppText style={{ color: theme.success }}>
+              {t("checkout.discount")}
+              {order.promo_code ? ` (${order.promo_code})` : ""}
+            </AppText>
+            <AppText style={{ color: theme.success }}>
+              −{formatPrice(order.discount_fils, locale)}
+            </AppText>
+          </View>
+        ) : null}
         <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
           <AppText style={{ fontWeight: "700" }}>{t("checkout.total")}</AppText>
           <AppText style={{ fontWeight: "700" }}>{formatPrice(order.total_fils, locale)}</AppText>
         </View>
-        <AppText>{t("orders.payCash", { total: formatPrice(order.total_fils, locale) })}</AppText>
+        <AppText>
+          {order.payment_method === "cash"
+            ? t("orders.payCash", { total: formatPrice(order.total_fils, locale) })
+            : order.payment_status === "paid"
+              ? t("orders.paidOnline")
+              : t("orders.payOnlineDue")}
+        </AppText>
       </Card>
 
       <Card>

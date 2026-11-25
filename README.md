@@ -73,6 +73,17 @@ Hosting is decided at the end of the project, so nothing here is tied to a host.
 - **`update_order_status()`** and **`set_accepting_orders()`** check on the server that the staff member works at the branch and that the step is allowed.
 - **Tests**: 18 more database tests (106 in total).
 
+## Phase 7 (Payments and promotions) delivers
+
+- **Online payments** next to cash. Admins add a gateway in the back office (**Settings**): **MyFatoorah** or **Tap Payments** (both take KNET, cards and Apple Pay in Kuwait), each in sandbox or live mode. The API key is stored in a table no app user can read, not even admins; the back office only shows its last 4 characters.
+- **Checkout** on the website and in the app offers cash or the active gateways. Online orders go to the gateway's payment page and reach the kitchen only after the gateway confirms the payment. The result is always checked with the gateway itself, never taken from the return link. Unpaid online orders are cancelled after 30 minutes, and customers can retry with **Pay now**.
+- **Built-in test gateway** to try the whole flow without a merchant account. It works only where the website allows it (`ALLOW_TEST_GATEWAY=true`, never in production by default).
+- **Promo codes** (**Promo codes** in the back office): percent off (with an optional cap), fixed amount off, or free delivery; minimum order, start and last day, total and per-customer limits, first order only, one branch or all. Branch managers can make codes for their own branch. Customers type the code at checkout; `place_order()` checks it again and records each use.
+- **Back office**: orders show _Paid online_ or _Cash to collect_, unpaid online orders are kept off the board, and paid orders that get cancelled show a refund reminder.
+- **Tests**: 30 more database tests (136 in total), unit tests for the gateway connectors and promo rules.
+
+Going live with a gateway: sign a merchant agreement with MyFatoorah or Tap, paste the **sandbox** key in Settings, place a test order with their test cards, then switch to the live key and turn on _Live mode_. The website server needs `SUPABASE_SECRET_KEY` (Supabase: Project settings > API > secret/service role key) to talk to gateways. Keep it secret: never put it in the mobile app or any `NEXT_PUBLIC_` variable.
+
 ## Run it locally
 
 Requirements: Node 22, pnpm 10, Docker (for the local Supabase).
@@ -127,5 +138,5 @@ pnpm build
 4. Website ordering (done)
 5. Mobile apps (ordering done; store release in Launch)
 6. Order operations (done)
-7. Payments and promotions (cash first, then pluggable gateways)
+7. Payments and promotions (done)
 8. Launch

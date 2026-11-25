@@ -219,7 +219,11 @@ export function OrdersBoard({
                         {formatPrice(o.total_fils, locale)}
                       </span>
                       <span className="text-xs text-muted-foreground">
-                        {o.payment_status === "paid" ? t("paid") : t("unpaid")}
+                        {o.payment_status === "paid"
+                          ? o.payment_method === "online"
+                            ? t("paidOnline")
+                            : t("paid")
+                          : t("unpaid")}
                       </span>
                     </div>
                     <StatusActions

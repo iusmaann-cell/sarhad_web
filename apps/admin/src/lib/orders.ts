@@ -22,6 +22,7 @@ export type BoardOrder = Pick<
   | "total_fils"
   | "created_at"
   | "payment_status"
+  | "payment_method"
   | "notes"
 > & { address: OrderAddress | null; items: OrderLine[] };
 
@@ -54,14 +55,18 @@ export async function loadBoard(
   branchId: string,
 ): Promise<{ orders: BoardOrder[]; accepting: boolean }> {
   const supabase = await createClient();
+  // Online orders nobody paid within 30 minutes are cancelled first.
+  await supabase.rpc("expire_unpaid_orders");
   const [{ data: orders }, { data: branch }] = await Promise.all([
     supabase
       .from("orders")
       .select(
-        `id, order_number, type, status, customer_name, customer_phone, total_fils, created_at, payment_status, notes, address, items:order_items(${ITEM_FIELDS})`,
+        `id, order_number, type, status, customer_name, customer_phone, total_fils, created_at, payment_status, payment_method, notes, address, items:order_items(${ITEM_FIELDS})`,
       )
       .eq("branch_id", branchId)
       .not("status", "in", "(completed,cancelled)")
+      // Online orders reach the kitchen only once paid.
+      .or("payment_method.eq.cash,payment_status.eq.paid")
       .order("created_at")
       .limit(200),
     supabase.from("branches").select("accepting_orders").eq("id", branchId).maybeSingle(),

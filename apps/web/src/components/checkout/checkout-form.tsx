@@ -25,11 +25,12 @@ import {
   Input,
   Textarea,
 } from "@sarhad/ui";
-import { Banknote, Bike, LocateFixed, Store } from "lucide-react";
+import { Banknote, Bike, CreditCard, LocateFixed, Store, Tag, X } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 
-import { placeOrder } from "@/app/[locale]/checkout/actions";
+import { placeOrder, quotePromo } from "@/app/[locale]/checkout/actions";
+import { payOrder } from "@/app/[locale]/orders/actions";
 import { checkDelivery } from "@/app/[locale]/delivery/actions";
 import { useCart } from "@/components/cart/cart-provider";
 import { useFreshCart } from "@/components/cart/use-fresh-cart";
@@ -81,11 +82,14 @@ export function CheckoutForm({
   zones,
   profile,
   addresses,
+  providers,
 }: {
   branches: CheckoutBranch[];
   zones: PublicZone[];
   profile: { name: string; phone: string };
   addresses: Tables<"customer_addresses">[];
+  /** Active online payment options (cash is always offered). */
+  providers: { id: string; name_en: string; name_ar: string }[];
 }) {
   const t = useTranslations("checkout");
   const tv = useTranslations("validation");
@@ -109,6 +113,16 @@ export function CheckoutForm({
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [serverError, setServerError] = useState<string | null>(null);
   const [locating, setLocating] = useState(false);
+  const [providerId, setProviderId] = useState<string | null>(null);
+  const [promoInput, setPromoInput] = useState("");
+  const [promo, setPromo] = useState<{
+    code: string;
+    nameEn: string;
+    nameAr: string;
+    discountFils: number;
+  } | null>(null);
+  const [promoError, setPromoError] = useState<string | null>(null);
+  const [checkingPromo, startPromo] = useTransition();
   const [pending, startTransition] = useTransition();
 
   // Delivery or pickup, whichever the branch offers.
@@ -141,6 +155,30 @@ export function CheckoutForm({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pointKey, effectiveType, branch?.id]);
 
+  // A promo's discount depends on the subtotal and delivery fee: check it again when they change.
+  const quoteKey = `${cart.branchId}:${cartSubtotal(cart)}:${
+    effectiveType === "delivery" && zone.status === "ok" ? zone.match.fee_fils : 0
+  }`;
+  const lastQuoteKey = useRef(quoteKey);
+  useEffect(() => {
+    if (lastQuoteKey.current === quoteKey) return;
+    lastQuoteKey.current = quoteKey;
+    if (!promo || !cart.branchId) return;
+    const [, sub, f] = quoteKey.split(":");
+    quotePromo({
+      code: promo.code,
+      branchId: cart.branchId,
+      subtotalFils: Number(sub),
+      deliveryFeeFils: Number(f),
+    }).then((res) => {
+      if (res.ok) setPromo(res);
+      else {
+        setPromo(null);
+        setPromoError(res.error);
+      }
+    });
+  }, [quoteKey, promo, cart.branchId]);
+
   if (!ready || !checked) return <p className="text-muted-foreground">…</p>;
 
   if (cart.lines.length === 0 || !branch) {
@@ -164,7 +202,8 @@ export function CheckoutForm({
     effectiveType === "delivery" && zone.status === "ok"
       ? amountToMinimum(subtotal, zone.match.min_order_fils)
       : 0;
-  const total = subtotal + fee;
+  const discount = promo ? Math.min(promo.discountFils, subtotal + fee) : 0;
+  const total = subtotal + fee - discount;
   const canSubmit =
     branch.open &&
     !pending &&
@@ -202,6 +241,25 @@ export function CheckoutForm({
     );
   }
 
+  function applyPromo(code: string) {
+    setPromoError(null);
+    startPromo(async () => {
+      const res = await quotePromo({
+        code,
+        branchId: branch!.id,
+        subtotalFils: subtotal,
+        deliveryFeeFils: fee,
+      });
+      if (res.ok) {
+        setPromo(res);
+        setPromoInput(res.code);
+      } else {
+        setPromo(null);
+        setPromoError(res.error);
+      }
+    });
+  }
+
   function submit(e: React.FormEvent) {
     e.preventDefault();
     setServerError(null);
@@ -235,12 +293,21 @@ export function CheckoutForm({
         cart,
         checkout,
         saveAddress: !saved && saveAddress,
+        promoCode: promo?.code ?? null,
+        providerId,
       });
       if (res.ok) {
         clear();
+        if (res.online) {
+          // Off to the payment page; the order page offers "Pay now" if this fails.
+          const pay = await payOrder(res.id);
+          if (pay?.error) router.push(`/orders/${res.id}?payment=failed`);
+          return;
+        }
         router.push(`/orders/${res.id}?placed=1`);
         return;
       }
+      if (res.error?.startsWith("promo_")) setPromo(null);
       if (res.fieldErrors) setErrors(res.fieldErrors);
       setServerError(res.error ?? null);
     });
@@ -469,10 +536,35 @@ export function CheckoutForm({
           <CardHeader>
             <CardTitle>{t("payment")}</CardTitle>
           </CardHeader>
-          <CardContent>
-            <p className="flex items-center gap-3 rounded-lg border border-primary bg-secondary p-3 font-medium">
-              <Banknote className="size-5 text-primary" aria-hidden /> {t("cash")}
-            </p>
+          <CardContent className="grid gap-2">
+            <fieldset className="grid gap-2">
+              <legend className="sr-only">{t("payment")}</legend>
+              {[
+                { id: null, label: t("cash"), Icon: Banknote },
+                ...providers.map((p) => ({
+                  id: p.id as string | null,
+                  label: localized(p, "name", locale),
+                  Icon: CreditCard,
+                })),
+              ].map((o) => (
+                <label
+                  key={o.id ?? "cash"}
+                  className="flex cursor-pointer items-center gap-3 rounded-lg border p-3 font-medium has-[:checked]:border-primary has-[:checked]:bg-secondary"
+                >
+                  <input
+                    type="radio"
+                    name="payment"
+                    checked={providerId === o.id}
+                    onChange={() => setProviderId(o.id)}
+                    className="accent-[var(--color-primary)]"
+                  />
+                  <o.Icon className="size-5 text-primary" aria-hidden /> {o.label}
+                </label>
+              ))}
+            </fieldset>
+            {providerId ? (
+              <p className="text-sm text-muted-foreground">{t("payOnlineHint")}</p>
+            ) : null}
           </CardContent>
         </Card>
       </div>
@@ -517,12 +609,77 @@ export function CheckoutForm({
                   </span>
                 </div>
               ) : null}
+              {promo ? (
+                <div className="flex justify-between text-emerald-700" data-testid="discount">
+                  <span>
+                    {t("discount")} ({promo.code})
+                  </span>
+                  <span className="tabular-nums">−{formatPrice(discount, locale)}</span>
+                </div>
+              ) : null}
               <div className="flex justify-between pt-1 text-base font-bold">
                 <span>{t("total")}</span>
                 <span className="tabular-nums" data-testid="checkout-total">
                   {formatPrice(total, locale)}
                 </span>
               </div>
+            </div>
+            <div className="grid gap-2 border-t pt-3">
+              {promo ? (
+                <div className="flex items-center justify-between gap-2 rounded-lg border border-emerald-600/40 bg-emerald-50 p-2 text-emerald-800">
+                  <span className="flex items-center gap-2">
+                    <Tag className="size-4" aria-hidden />
+                    {t("promoApplied", {
+                      name: locale === "ar" ? promo.nameAr : promo.nameEn,
+                    })}
+                  </span>
+                  <button
+                    type="button"
+                    className="rounded p-1 hover:bg-emerald-100"
+                    aria-label={t("removePromo")}
+                    onClick={() => {
+                      setPromo(null);
+                      setPromoInput("");
+                    }}
+                  >
+                    <X className="size-4" />
+                  </button>
+                </div>
+              ) : (
+                <div className="flex gap-2">
+                  <Input
+                    aria-label={t("promoCode")}
+                    placeholder={t("promoCode")}
+                    value={promoInput}
+                    dir="ltr"
+                    className="uppercase"
+                    data-testid="promo-input"
+                    onChange={(e) => {
+                      setPromoInput(e.target.value);
+                      setPromoError(null);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        if (promoInput.trim()) applyPromo(promoInput);
+                      }
+                    }}
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    disabled={!promoInput.trim() || checkingPromo}
+                    onClick={() => applyPromo(promoInput)}
+                  >
+                    {t("applyPromo")}
+                  </Button>
+                </div>
+              )}
+              {promoError ? (
+                <p className="text-sm text-destructive" role="alert">
+                  {t(`errors.${promoError}` as Parameters<typeof t>[0])}
+                </p>
+              ) : null}
             </div>
             {shortBy > 0 ? (
               <p className="text-sm text-destructive">
@@ -535,7 +692,11 @@ export function CheckoutForm({
               </Alert>
             ) : null}
             <Button type="submit" size="lg" disabled={!canSubmit} data-testid="place-order">
-              {pending ? t("placing") : t("placeOrder", { total: formatPrice(total, locale) })}
+              {pending
+                ? t("placing")
+                : providerId
+                  ? t("placeAndPay", { total: formatPrice(total, locale) })
+                  : t("placeOrder", { total: formatPrice(total, locale) })}
             </Button>
           </CardContent>
         </Card>

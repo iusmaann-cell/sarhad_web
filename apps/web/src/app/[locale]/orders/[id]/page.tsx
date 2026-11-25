@@ -1,4 +1,4 @@
-import { formatAddress, formatPrice, isOpenOrder } from "@sarhad/core";
+import { awaitingPayment, formatAddress, formatPrice, isOpenOrder } from "@sarhad/core";
 import { localized, type Locale } from "@sarhad/i18n";
 import { Alert, Badge, Button, Card, CardContent, CardHeader, CardTitle } from "@sarhad/ui";
 import { MapPin, Phone, Store } from "lucide-react";
@@ -9,6 +9,7 @@ import { getFormatter, getTranslations, setRequestLocale } from "next-intl/serve
 import { CancelOrderButton } from "@/components/orders/cancel-order-button";
 import { OrderLive } from "@/components/orders/order-live";
 import { OrderTracker } from "@/components/orders/order-tracker";
+import { PayButton } from "@/components/orders/pay-button";
 import { getOrder } from "@/lib/orders";
 
 export const metadata: Metadata = { robots: { index: false } };
@@ -32,11 +33,22 @@ export default async function OrderPage({
   ]);
   const branchName = order.branch ? localized(order.branch, "name", locale) : "";
   const active = isOpenOrder(order.status);
+  const unpaid = awaitingPayment(order) && order.status === "pending";
+  const paymentResult = typeof sp.payment === "string" ? sp.payment : null;
 
   return (
     <div className="mx-auto grid max-w-3xl gap-6 px-4 py-8">
       <OrderLive active={active} />
-      {sp.placed ? <Alert variant="success">{t("thanks")}</Alert> : null}
+      {sp.placed && !unpaid ? <Alert variant="success">{t("thanks")}</Alert> : null}
+      {paymentResult === "paid" ? (
+        <Alert variant="success">{t("paymentDone")}</Alert>
+      ) : paymentResult === "failed" || paymentResult === "cancelled" ? (
+        unpaid ? (
+          <Alert variant="destructive">{t("paymentFailed")}</Alert>
+        ) : null
+      ) : paymentResult === "pending" && unpaid ? (
+        <Alert>{t("paymentPending")}</Alert>
+      ) : null}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-3xl font-bold">{t("orderNumber", { number: order.order_number })}</h1>
@@ -66,11 +78,24 @@ export default async function OrderPage({
 
       {order.status === "cancelled" ? (
         <Alert variant="destructive">
-          {t("cancelled")}
-          {order.cancel_reason && order.cancel_reason !== "customer"
+          {order.cancel_reason === "payment_timeout" ? t("paymentTimeout") : t("cancelled")}
+          {order.cancel_reason &&
+          order.cancel_reason !== "customer" &&
+          order.cancel_reason !== "payment_timeout"
             ? ` ${t("cancelReason", { reason: order.cancel_reason })}`
             : null}
         </Alert>
+      ) : unpaid ? (
+        <Card className="border-primary">
+          <CardContent className="grid gap-3 pt-6">
+            <p className="text-lg font-semibold">{t("paymentWaiting")}</p>
+            <p className="text-sm text-muted-foreground">{t("paymentWaitingHint")}</p>
+            <PayButton
+              orderId={order.id}
+              label={t("payNow", { total: formatPrice(order.total_fils, locale) })}
+            />
+          </CardContent>
+        </Card>
       ) : (
         <Card>
           <CardContent className="grid gap-4 pt-6">
@@ -123,13 +148,26 @@ export default async function OrderPage({
                 </span>
               </div>
             ) : null}
+            {order.discount_fils > 0 ? (
+              <div className="flex justify-between text-emerald-700">
+                <span>
+                  {tc("discount")}
+                  {order.promo_code ? ` (${order.promo_code})` : ""}
+                </span>
+                <span className="tabular-nums">−{formatPrice(order.discount_fils, locale)}</span>
+              </div>
+            ) : null}
             <div className="flex justify-between text-base font-bold">
               <span>{tc("total")}</span>
               <span className="tabular-nums">{formatPrice(order.total_fils, locale)}</span>
             </div>
           </div>
-          <p className="font-medium">
-            {t("payCash", { total: formatPrice(order.total_fils, locale) })}
+          <p className="font-medium" data-testid="payment-line">
+            {order.payment_method === "cash"
+              ? t("payCash", { total: formatPrice(order.total_fils, locale) })
+              : order.payment_status === "paid"
+                ? t("paidOnline")
+                : t("payOnlineDue")}
           </p>
           {order.notes ? (
             <p className="text-muted-foreground">
