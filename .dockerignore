@@ -1,0 +1,12 @@
+**/node_modules
+**/.next
+**/.turbo
+**/.expo
+**/.env
+**/.env.*
+!.env.example
+.git
+apps/mobile/*
+!apps/mobile/package.json
+supabase/.branches
+coverage

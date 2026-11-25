@@ -86,7 +86,21 @@
     "profile": "Profile",
     "preferredLanguage": "Preferred language",
     "orders": "My orders",
-    "noOrders": "You have no orders yet."
+    "noOrders": "You have no orders yet.",
+    "privacy": "Privacy",
+    "privacyPolicy": "Privacy policy",
+    "deleteAccount": "Delete my account",
+    "deleteTitle": "Delete your account?",
+    "deleteBody": "Your login, profile and saved addresses are deleted. Past orders stay in the restaurant's records without your name, phone number or address. This cannot be undone.",
+    "deleteConfirm": "I understand, delete my account",
+    "keepAccount": "Keep my account",
+    "deleteForever": "Delete forever",
+    "deleted": "Your account has been deleted.",
+    "deleteErrors": {
+      "staff_account": "This is a staff account. Ask the restaurant owner to remove it from the back office.",
+      "open_orders": "You have an order in progress. You can delete your account once it is finished.",
+      "unknown": "Something went wrong. Please try again."
+    }
   },
   "validation": {
     "required": "This field is required.",
@@ -645,5 +659,82 @@
     "sandbox": "Sandbox",
     "needsKey": "Add an API key before showing it at checkout.",
     "serverNote": "The website server also needs SUPABASE_SECRET_KEY set to talk to gateways (see the README)."
+  },
+  "legal": {
+    "privacyTitle": "Privacy policy",
+    "termsTitle": "Terms of use",
+    "updated": "Last updated: {date}",
+    "footerPrivacy": "Privacy",
+    "footerTerms": "Terms",
+    "privacy": [
+      [
+        "Who we are",
+        "Sarhad is a restaurant in Kuwait. This policy explains what we collect when you use our website and mobile app, and why."
+      ],
+      [
+        "What we collect",
+        "Your name, email address and mobile number when you create an account. Your delivery addresses and the map pin you place, so the driver can find you. Your orders: dishes, notes, totals, payment method and status. We do not collect your location in the background: the app only reads it when you tap \"Use my location\"."
+      ],
+      [
+        "Payments",
+        "Cash is paid on delivery or pickup. Online payments (KNET and cards) are handled entirely by our payment provider on their own secure page. We never see or store your card details; we only receive whether the payment succeeded."
+      ],
+      [
+        "How we use it",
+        "To prepare and deliver your order, to contact you about it, to check that we deliver to your address, to apply promo codes, and to keep records the law requires. We do not sell your data or use it for advertising."
+      ],
+      [
+        "Who we share it with",
+        "The branch preparing your order. The driver delivering it (name, phone and address only). Our technology providers, who process data on our behalf: Supabase (database and accounts), our website host, our payment provider, and OpenFreeMap (map images, which receive the area of the map you look at, not your account)."
+      ],
+      [
+        "Cookies and storage",
+        "We use cookies to keep you signed in and to remember your language, and your browser stores your cart. We do not use advertising or tracking cookies."
+      ],
+      [
+        "How long we keep it",
+        "Your account data stays until you delete your account. Order records are kept for accounting; when you delete your account, they are kept without your name, phone number or address."
+      ],
+      [
+        "Your choices",
+        "You can see your details and orders in your account, and delete your account at any time from the Account page on the website or in the app. To correct or ask about your data, call any of our branches (see the Branches page)."
+      ],
+      ["Changes", "If we change this policy we will update the date at the top of this page."]
+    ],
+    "terms": [
+      [
+        "About these terms",
+        "By ordering from Sarhad on this website or in our app, you agree to these terms."
+      ],
+      [
+        "Orders",
+        "An order is confirmed when the branch accepts it. Menu items, prices and availability can change; the price you pay is the one shown at checkout, calculated again by our system when you place the order. Prices are in Kuwaiti dinars."
+      ],
+      [
+        "Delivery and pickup",
+        "We deliver only inside the delivery areas shown on our Delivery page, and a minimum order may apply. Delivery times are estimates. Deliveries may be made by drivers from partner delivery companies. For pickup, collect your order from the branch you chose."
+      ],
+      [
+        "Payment",
+        "You can pay in cash on delivery or pickup, or online where available. Online orders are sent to the kitchen once the payment is confirmed, and are cancelled automatically if not paid within 30 minutes."
+      ],
+      [
+        "Cancellations and refunds",
+        "You can cancel an order yourself until the branch accepts it. After that, call the branch. If an order you paid online is cancelled, we refund the amount to the same card or account; your bank decides how long this takes."
+      ],
+      [
+        "Promo codes",
+        "Promo codes have their own conditions (dates, minimum order, number of uses) shown when you apply them. They have no cash value and cannot be combined."
+      ],
+      [
+        "Your account",
+        "Keep your password safe. Give a correct phone number and address so we can deliver your order. We may close accounts that are misused."
+      ],
+      [
+        "Allergies",
+        "Tell us about allergies in the notes, and call the branch if in doubt. Our kitchens handle common allergens, so we cannot promise that a dish is free of them."
+      ],
+      ["Law", "These terms are governed by the laws of the State of Kuwait."]
+    ]
   }
 }

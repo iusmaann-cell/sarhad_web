@@ -79,12 +79,13 @@ export function Button({
 }: {
   title: string;
   onPress: () => void;
-  variant?: "primary" | "outline" | "link";
+  variant?: "primary" | "outline" | "link" | "danger";
   loading?: boolean;
   disabled?: boolean;
 }) {
   const theme = useTheme();
   const isPrimary = variant === "primary";
+  const filled = isPrimary || variant === "danger";
   return (
     <Pressable
       accessibilityRole="button"
@@ -94,6 +95,7 @@ export function Button({
       style={({ pressed }) => [
         variant === "link" ? styles.link : styles.button,
         isPrimary && { backgroundColor: theme.primary },
+        variant === "danger" && { backgroundColor: theme.danger },
         variant === "outline" && {
           borderWidth: 1,
           borderColor: theme.border,
@@ -103,11 +105,11 @@ export function Button({
       ]}
     >
       {loading ? (
-        <ActivityIndicator color={isPrimary ? theme.primaryText : theme.primary} />
+        <ActivityIndicator color={filled ? theme.primaryText : theme.primary} />
       ) : (
         <Text
           style={{
-            color: isPrimary ? theme.primaryText : theme.primary,
+            color: filled ? theme.primaryText : theme.primary,
             fontWeight: "600",
             fontSize: 16,
             textAlign: "center",

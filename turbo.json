@@ -10,6 +10,15 @@
     "EXPO_PUBLIC_SITE_URL",
     "NEXT_PUBLIC_MAP_STYLE_URL"
   ],
+  "globalPassThroughEnv": [
+    "HTTP_PROXY",
+    "HTTPS_PROXY",
+    "NO_PROXY",
+    "http_proxy",
+    "https_proxy",
+    "no_proxy",
+    "NODE_EXTRA_CA_CERTS"
+  ],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],

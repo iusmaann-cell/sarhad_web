@@ -3,6 +3,7 @@ import { Button, Card, CardContent, CardHeader, CardTitle } from "@sarhad/ui";
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 
+import { DeleteAccount } from "@/components/account/delete-account";
 import { Link, redirect } from "@/i18n/navigation";
 import { createClient } from "@/lib/supabase/server";
 
@@ -66,6 +67,17 @@ export default async function AccountPage({ params }: PageProps<"/[locale]/accou
           <Button asChild variant="outline">
             <Link href="/orders">{tn("orders")}</Link>
           </Button>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader>
+          <CardTitle>{t("privacy")}</CardTitle>
+        </CardHeader>
+        <CardContent className="flex flex-wrap items-center gap-3">
+          <Button asChild variant="link" className="px-0">
+            <Link href="/privacy">{t("privacyPolicy")}</Link>
+          </Button>
+          <DeleteAccount />
         </CardContent>
       </Card>
     </div>
