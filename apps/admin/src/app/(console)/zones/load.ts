@@ -16,6 +16,13 @@ export type ZoneRow = {
   eta_minutes: number;
   color: string;
   is_active: boolean;
+  delivery_areas?: {
+    city_en: string;
+    city_ar: string;
+    name_en: string;
+    name_ar: string;
+    sort_order: number;
+  }[];
 };
 
 const ZONE_FIELDS =
@@ -35,7 +42,7 @@ export async function loadZones(branchId: string): Promise<ZoneRow[]> {
   const supabase = await createClient();
   const { data } = await supabase
     .from("delivery_zones")
-    .select(ZONE_FIELDS)
+    .select(`${ZONE_FIELDS}, delivery_areas(city_en, city_ar, name_en, name_ar, sort_order)`)
     .eq("branch_id", branchId)
     .order("sort_order")
     .order("created_at");
@@ -46,10 +53,17 @@ export async function loadZone(id: string): Promise<ZoneRow | null> {
   const supabase = await createClient();
   const { data } = await supabase
     .from("delivery_zones")
-    .select(ZONE_FIELDS)
+    .select(`${ZONE_FIELDS}, delivery_areas(city_en, city_ar, name_en, name_ar, sort_order)`)
     .eq("id", id)
     .maybeSingle();
   return (data as unknown as ZoneRow | null) ?? null;
+}
+
+/** A zone's named areas in the order the manager set, for the form. */
+export function zoneAreaValues(z: ZoneRow) {
+  return [...(z.delivery_areas ?? [])]
+    .sort((a, b) => a.sort_order - b.sort_order)
+    .map((a) => ({ cityEn: a.city_en, cityAr: a.city_ar, nameEn: a.name_en, nameAr: a.name_ar }));
 }
 
 export function toMapZone(z: ZoneRow, locale: Locale) {

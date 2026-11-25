@@ -95,6 +95,8 @@ Going live with a gateway: sign a merchant agreement with MyFatoorah or Tap, pas
 
 ## Run it locally
 
+Not a developer? Follow the step-by-step guide in [docs/LOCAL_TESTING.md](docs/LOCAL_TESTING.md): it covers installing the tools, the sample data, and placing a test order end to end.
+
 Requirements: Node 22, pnpm 10, Docker (for the local Supabase).
 
 ```bash
@@ -119,6 +121,8 @@ Seeded accounts (local only, password `Sarhad1234`):
 | ---------------------- | --------------------------- |
 | `owner@sarhad.test`    | Owner                       |
 | `manager@sarhad.test`  | Branch manager, main branch |
+| `salmiya@sarhad.test`  | Branch manager, Salmiya     |
+| `kitchen@sarhad.test`  | Staff, main branch          |
 | `customer@sarhad.test` | Customer                    |
 
 ## Checks

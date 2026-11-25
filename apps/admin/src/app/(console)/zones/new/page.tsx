@@ -39,6 +39,7 @@ export default async function NewZonePage({ searchParams }: PageProps<"/zones/ne
           color: ZONE_COLORS[ctx.zoneCount % ZONE_COLORS.length]!,
           isActive: true,
           polygons: [],
+          areas: [],
         }}
       />
     </div>

@@ -184,6 +184,14 @@ export const addressSchema = z.object({
 
 export type AddressData = z.output<typeof addressSchema>;
 
+/** Address for delivery to a listed area: the map pin is optional. */
+export const areaAddressSchema = addressSchema.extend({
+  latitude: z.number().min(-90).max(90).optional(),
+  longitude: z.number().min(-180).max(180).optional(),
+});
+
+export type AreaAddressData = z.output<typeof areaAddressSchema>;
+
 export const checkoutSchema = z.discriminatedUnion("type", [
   z.object({
     type: z.literal("pickup"),
@@ -199,6 +207,29 @@ export const checkoutSchema = z.discriminatedUnion("type", [
     address: addressSchema,
   }),
 ]);
+
+/**
+ * Website checkout: delivery goes to an area the customer picked from the list,
+ * and the area decides the branch, so no map pin is needed.
+ */
+export const areaCheckoutSchema = z.discriminatedUnion("type", [
+  z.object({
+    type: z.literal("pickup"),
+    name: z.string().trim().min(2, "nameTooShort").max(80),
+    phone: kuwaitPhoneSchema,
+    notes: opt(500),
+  }),
+  z.object({
+    type: z.literal("delivery"),
+    areaId: z.string({ error: "areaRequired" }).uuid("areaRequired"),
+    name: z.string().trim().min(2, "nameTooShort").max(80),
+    phone: kuwaitPhoneSchema,
+    notes: opt(500),
+    address: areaAddressSchema,
+  }),
+]);
+
+export type AreaCheckoutData = z.output<typeof areaCheckoutSchema>;
 
 export type CheckoutData = z.output<typeof checkoutSchema>;
 
@@ -216,6 +247,7 @@ export const ORDER_ERROR_CODES = [
   "invalid_options",
   "address_required",
   "outside_zone",
+  "area_unavailable",
   "below_minimum",
   "payment_unavailable",
   "promo_invalid",

@@ -9,6 +9,7 @@ import {
   cartCount,
   cartSubtotal,
   cartToOrderItems,
+  areaCheckoutSchema,
   checkoutSchema,
   EMPTY_CART,
   formatAddress,
@@ -116,6 +117,18 @@ describe("checkout", () => {
     const messages = r.error!.issues.map((i) => i.message);
     expect(messages).toContain("required");
     expect(messages).toContain("pinRequired");
+  });
+
+  it("needs no map pin for delivery to a listed area", () => {
+    const { latitude: _lat, longitude: _lng, ...noPin } = address;
+    const base = { type: "delivery", name: "Ali", phone: "50000000", address: noPin };
+    expect(
+      areaCheckoutSchema.safeParse({ ...base, areaId: "9602b707-974d-4bba-9ef2-c674e61e8c08" })
+        .success,
+    ).toBe(true);
+    const r = areaCheckoutSchema.safeParse(base);
+    expect(r.success).toBe(false);
+    expect(r.error!.issues.map((i) => i.message)).toContain("areaRequired");
   });
 
   it("formats a Kuwaiti address", () => {

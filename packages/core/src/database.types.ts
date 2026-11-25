@@ -87,6 +87,40 @@ export type Database = {
         };
         Relationships: [];
       };
+      delivery_areas: {
+        Row: {
+          city_ar: string;
+          city_en: string;
+          created_at: string;
+          id: string;
+          is_active: boolean;
+          name_ar: string;
+          name_en: string;
+          sort_order: number;
+          updated_at: string;
+          zone_id: string;
+        };
+        Insert: {
+          city_ar: string;
+          city_en: string;
+          id?: string;
+          is_active?: boolean;
+          name_ar: string;
+          name_en: string;
+          sort_order?: number;
+          zone_id: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["delivery_areas"]["Insert"]>;
+        Relationships: [
+          {
+            foreignKeyName: "delivery_areas_zone_id_fkey";
+            columns: ["zone_id"];
+            isOneToOne: false;
+            referencedRelation: "delivery_zones";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       delivery_zones: {
         Row: {
           area: unknown;
@@ -180,6 +214,7 @@ export type Database = {
           customer_name: string;
           customer_phone: string;
           delivery_fee_fils: number;
+          delivery_area_id: string | null;
           delivery_zone_id: string | null;
           discount_fils: number;
           eta_minutes: number | null;
@@ -624,6 +659,24 @@ export type Database = {
           branch_name_ar: string;
           zone_name_en: string;
           zone_name_ar: string;
+          fee_fils: number;
+          min_order_fils: number;
+          eta_minutes: number;
+        }[];
+      };
+      list_delivery_areas: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          area_id: string;
+          city_en: string;
+          city_ar: string;
+          name_en: string;
+          name_ar: string;
+          zone_id: string;
+          branch_id: string;
+          branch_slug: string;
+          branch_name_en: string;
+          branch_name_ar: string;
           fee_fils: number;
           min_order_fils: number;
           eta_minutes: number;

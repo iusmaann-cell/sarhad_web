@@ -83,6 +83,24 @@ const whole = (min: number, max: number) =>
       return n;
     });
 
+/** One named area a zone delivers to, shown to customers as City, then Area. */
+export const zoneAreaNameSchema = z.object({
+  cityEn: z.string().trim().min(1, "required").max(60),
+  cityAr: z.string().trim().min(1, "required").max(60),
+  nameEn: z.string().trim().min(1, "required").max(60),
+  nameAr: z.string().trim().min(1, "required").max(60),
+});
+
+export type ZoneAreaName = z.output<typeof zoneAreaNameSchema>;
+
+/** Same city and area name twice in one zone (case and spaces ignored). */
+function hasDuplicateArea(areas: ZoneAreaName[]): boolean {
+  const keys = areas.map(
+    (a) => `${a.cityEn.trim().toLowerCase()}|${a.nameEn.trim().toLowerCase()}`,
+  );
+  return new Set(keys).size !== keys.length;
+}
+
 export const zoneSchema = z.object({
   branchId: z.string().uuid("required"),
   nameEn: z.string().trim().min(1, "required").max(80),
@@ -93,7 +111,42 @@ export const zoneSchema = z.object({
   color: z.string().regex(/^#[0-9a-fA-F]{6}$/, "invalidColor"),
   isActive: z.boolean(),
   area: zoneAreaSchema.nullable().refine((a) => a !== null, "drawArea"),
+  areas: z
+    .array(zoneAreaNameSchema)
+    .max(200)
+    .refine((a) => !hasDuplicateArea(a), "duplicateArea"),
 });
+
+/** One row of list_delivery_areas(): an area customers can order delivery to. */
+export type DeliveryAreaOption = {
+  area_id: string;
+  city_en: string;
+  city_ar: string;
+  name_en: string;
+  name_ar: string;
+  zone_id: string;
+  branch_id: string;
+  branch_slug: string;
+  branch_name_en: string;
+  branch_name_ar: string;
+  fee_fils: number;
+  min_order_fils: number;
+  eta_minutes: number;
+};
+
+/** Group areas by city for the picker, keeping the database order. */
+export function groupAreasByCity<T extends { city_en: string }>(
+  areas: T[],
+): { city: string; areas: T[] }[] {
+  const map = new Map<string, T[]>();
+  for (const a of areas) {
+    const key = a.city_en;
+    const list = map.get(key);
+    if (list) list.push(a);
+    else map.set(key, [a]);
+  }
+  return [...map.entries()].map(([city, list]) => ({ city, areas: list }));
+}
 
 export type ZoneData = z.output<typeof zoneSchema>;
 

@@ -1,7 +1,7 @@
 {
   "common": {
-    "brand": "Sarhad",
-    "tagline": "Authentic flavours, delivered across Kuwait",
+    "brand": "Sarhad Chicken",
+    "tagline": "Crispy fried chicken, delivered across Kuwait",
     "language": "Language",
     "switchLanguage": "العربية",
     "loading": "Loading…",
@@ -28,7 +28,9 @@
     "kwd": "KWD",
     "search": "Search",
     "selectBranch": "Choose branch",
-    "notFound": "Not found"
+    "notFound": "Not found",
+    "contactUs": "Contact us",
+    "followUs": "Order online, delivered across Kuwait."
   },
   "nav": {
     "home": "Home",
@@ -44,13 +46,31 @@
   },
   "home": {
     "heroTitle": "Welcome to Sarhad",
-    "heroBody": "Order your favourite dishes for delivery or pickup, and pay in cash when you receive them.",
+    "heroBody": "Fried chicken cooked fresh when you order. Get it delivered across Kuwait or pick it up from your nearest Sarhad branch.",
     "orderNow": "Order now",
     "ourBranches": "Our branches",
     "noBranches": "Branches will appear here soon.",
     "delivery": "Delivery",
     "pickup": "Pickup",
-    "call": "Call"
+    "call": "Call",
+    "heroKicker": "Fried chicken · Kuwait",
+    "heroTitleScript": "Crispy outside.",
+    "heroTitleRest": "Juicy inside.",
+    "startOrder": "Order now",
+    "howItWorks": "How ordering works",
+    "step1": "Delivery or pickup",
+    "step1Body": "Pick your city and area for delivery, or the branch you'll collect from.",
+    "step2": "Pick your meal",
+    "step2Body": "Browse the menu and add sizes, sides and extras.",
+    "step3": "Pay and track",
+    "step3Body": "Pay cash, KNET or card, then follow your order live until it arrives.",
+    "findBranch": "Find a branch",
+    "perkType": "Delivery or pickup",
+    "perkPay": "Cash, KNET or card",
+    "perkTrack": "Live order tracking",
+    "mascotAlt": "Sarhad Chicken chef presenting a plate of fried chicken",
+    "popular": "Popular right now",
+    "seeMenu": "See full menu"
   },
   "auth": {
     "signInTitle": "Sign in to your account",
@@ -130,7 +150,9 @@
     "invalidDate": "Enter a valid date.",
     "endBeforeStart": "The last day must be after the start.",
     "promoCodeTaken": "This code already exists.",
-    "paymentNeedsKey": "Add an API key before showing this gateway at checkout."
+    "paymentNeedsKey": "Add an API key before showing this gateway at checkout.",
+    "duplicateArea": "This area is listed twice. Remove one of them.",
+    "areaRequired": "Choose your delivery area."
   },
   "admin": {
     "title": "Back office",
@@ -269,7 +291,17 @@
     "promoCodeTaken": "This code already exists.",
     "paymentSaved": "Payment gateway saved",
     "paymentDeleted": "Payment gateway removed",
-    "paymentNeedsKey": "Add an API key before showing this gateway at checkout."
+    "paymentNeedsKey": "Add an API key before showing this gateway at checkout.",
+    "zoneAreasTitle": "Areas customers can choose",
+    "zoneAreasHelp": "Customers pick a city, then an area, from these lists. Orders to these areas go to this branch.",
+    "areaCityEn": "City (English)",
+    "areaCityAr": "City (Arabic)",
+    "areaNameEn": "Area (English)",
+    "areaNameAr": "Area (Arabic)",
+    "addArea": "Add area",
+    "removeArea": "Remove area {n}",
+    "noAreas": "No areas yet. Customers can only find this zone by map pin in the app.",
+    "areaCount": "{count, plural, =0 {No areas} one {# area} other {# areas}}"
   },
   "days": {
     "sat": "Saturday",
@@ -348,7 +380,9 @@
     "checkout": "Checkout",
     "removedItems": "{count, plural, one {1 dish is no longer available and was removed.} other {# dishes are no longer available and were removed.}}",
     "pricesUpdated": "Prices are checked again when you place the order.",
-    "items": "{count, plural, one {1 item} other {# items}}"
+    "items": "{count, plural, one {1 item} other {# items}}",
+    "deliveryAtCheckout": "Delivery fee",
+    "addMore": "Add more items"
   },
   "checkout": {
     "title": "Checkout",
@@ -412,7 +446,8 @@
       "promo_used_up": "This promo code has been fully used.",
       "promo_already_used": "You have already used this promo code.",
       "promo_first_order": "This promo code is for your first order only.",
-      "promo_delivery_only": "This promo code is for delivery orders."
+      "promo_delivery_only": "This promo code is for delivery orders.",
+      "area_unavailable": "We no longer deliver to this area. Choose another area or pick up instead."
     },
     "discount": "Discount",
     "promoCode": "Promo code",
@@ -420,7 +455,13 @@
     "removePromo": "Remove promo code",
     "promoApplied": "{name} applied",
     "payOnlineHint": "You will go to a secure payment page (KNET or card) after placing the order.",
-    "placeAndPay": "Continue to payment · {total}"
+    "placeAndPay": "Continue to payment · {total}",
+    "areaLocked": "City and area",
+    "pinOptional": "Pin your door on the map (optional)",
+    "pinOptionalHint": "Helps the driver find you faster.",
+    "areaZoneInfo": "We deliver here · {fee} · about {minutes} min",
+    "savedOtherArea": "Saved addresses in {area}",
+    "chooseFirst": "Choose delivery or pickup to continue."
   },
   "orders": {
     "title": "My orders",
@@ -699,7 +740,10 @@
         "Your choices",
         "You can see your details and orders in your account, and delete your account at any time from the Account page on the website or in the app. To correct or ask about your data, call any of our branches (see the Branches page)."
       ],
-      ["Changes", "If we change this policy we will update the date at the top of this page."]
+      [
+        "Changes",
+        "If we change this policy we will update the date at the top of this page."
+      ]
     ],
     "terms": [
       [
@@ -734,7 +778,47 @@
         "Allergies",
         "Tell us about allergies in the notes, and call the branch if in doubt. Our kitchens handle common allergens, so we cannot promise that a dish is free of them."
       ],
-      ["Law", "These terms are governed by the laws of the State of Kuwait."]
+      [
+        "Law",
+        "These terms are governed by the laws of the State of Kuwait."
+      ]
     ]
+  },
+  "start": {
+    "title": "How do you want your order?",
+    "delivery": "Delivery",
+    "deliveryHint": "We bring it to your door",
+    "pickup": "Pickup",
+    "pickupHint": "Collect it from a branch",
+    "back": "Back",
+    "close": "Close",
+    "whereTitle": "Where should we deliver?",
+    "whereHint": "Only areas we deliver to are listed.",
+    "city": "City",
+    "chooseCity": "Choose your city",
+    "area": "Area",
+    "searchAreas": "Search areas",
+    "noAreaMatch": "No area matches your search.",
+    "areaInfo": "Delivery {fee} · about {minutes} min · minimum {min}",
+    "freeDelivery": "free",
+    "continue": "Continue to menu",
+    "notListed": "My area isn't listed",
+    "noAreasYet": "Delivery areas are not set up yet. Contact us or pick up from a branch.",
+    "notListedTitle": "We don't deliver there yet",
+    "notListedBody": "Contact us and we'll see what we can do, or pick up from a branch.",
+    "call": "Call us",
+    "whatsapp": "WhatsApp",
+    "email": "Email",
+    "pickupInstead": "Pick up instead",
+    "pickupTitle": "Choose your pickup branch",
+    "pickupBody": "The menu shown is for this branch.",
+    "noPickup": "No branch offers pickup right now.",
+    "openNow": "Open now",
+    "closedNow": "Closed now",
+    "deliveryTo": "Delivery to {area}",
+    "pickupFrom": "Pickup from {branch}",
+    "routedHint": "Sent to the branch that covers your area",
+    "change": "Change",
+    "chooseHow": "Delivery or pickup?"
   }
 }
